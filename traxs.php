@@ -1,6 +1,6 @@
 <?php
 /*
- * Version: 1.0.1
+ * Version: 1.0.2
  * Plugin Name: Traxs
  * Plugin URI: https://github.com/emkowale/traxs
  * Description: Smart Purchase Order & Receiving Workflow for WordPress.
@@ -19,10 +19,7 @@
  */
 
 if (!defined('ABSPATH')) exit;
-
-
-
-define('TRAXS_VERSION','1.0.1');
+define('TRAXS_VERSION','1.0.2');
 /**
  * Register /traxs/ endpoint
  */
