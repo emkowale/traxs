@@ -1,4 +1,7 @@
-v1.0.1 — 2025-11-14
+v1.0.2 — 2025-11-14
+
+Changed files:
+- traxs.phpv1.0.1 — 2025-11-14
 
 Changed files:
 - README.md
