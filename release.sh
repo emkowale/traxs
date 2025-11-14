@@ -32,12 +32,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 [[ -d .git ]] || { [[ -d ../.git ]] && cd .. || die "Not in a git repo"; }
 
-# --- Ensure repo exists and remote set ----------------------------------------
-if [[ ! -d .git ]]; then
-  step "Initializing new git repo"
-  git init -b main
-  git add -A && git commit -m "Initial import"
+# --- Ensure remote exists -----------------------------------------------------
+if ! git remote | grep -q '^origin$'; then
+  step "Setting up git remote"
+  git init -b main >/dev/null 2>&1 || true
   git remote add origin "$REMOTE_URL"
+  ok "Remote 'origin' added: $REMOTE_URL"
 fi
 
 git remote set-url origin "$REMOTE_URL" >/dev/null 2>&1 || true
@@ -75,12 +75,12 @@ esac
 NEXT="${MA}.${MI}.${PA}"
 ok "Version bump: $BASE → $NEXT"
 
-# --- Bump in main file --------------------------------------------------------
+# --- Bump version in main file ------------------------------------------------
 step "Updating version in $MAIN_PATH"
 php -r '
 $f=$argv[1];$v=$argv[2];
 $t=file_get_contents($f);
-$t=preg_replace("/(Version:\s*)([0-9.]+)/i","${1}$v",$t,1);
+$t=preg_replace("/(Version:\s*)([0-9.]+)/i","\${1}$v",$t,1);
 file_put_contents($f,$t);
 ' "$MAIN_PATH" "$NEXT"
 
@@ -108,8 +108,8 @@ git commit -m "docs: changelog v${NEXT}" >/dev/null 2>&1 || true
 # --- Tag and push -------------------------------------------------------------
 git tag -f "v${NEXT}"
 step "Pushing to GitHub (local wins)"
-git push -f origin main
-git push -f origin "v${NEXT}"
+git push -f origin main || warn "Push to origin main failed (check auth)"
+git push -f origin "v${NEXT}" || warn "Tag push failed (check auth)"
 ok "Repository synced"
 
 # --- Build zip ----------------------------------------------------------------
