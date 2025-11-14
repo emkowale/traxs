@@ -1,3 +1,9 @@
+v1.0.3 — 2025-11-14
+
+Changed files:
+- release.sh
+- traxs.php
+
 v1.0.2 — 2025-11-14
 
 Changed files:
