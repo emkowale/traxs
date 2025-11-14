@@ -1,6 +1,6 @@
 <?php
 /*
- * Version: 1.0.2
+ * 1.0.3
  * Plugin Name: Traxs
  * Plugin URI: https://github.com/emkowale/traxs
  * Description: Smart Purchase Order & Receiving Workflow for WordPress.
