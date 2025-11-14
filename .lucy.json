@@ -1,0 +1,10 @@
+{
+  "plugin_name": "Traxs",
+  "owner": "emkowale",
+  "repo": "traxs",
+  "slug": "traxs",
+  "main_file": "traxs.php",
+  "branch": "main",
+  "version": "1.0.4",
+  "memory_anchor": true
+}
