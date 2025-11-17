@@ -11,6 +11,12 @@ trait WorkOrder_Sections {
 		$this->SetXY(10, 10);
 		$this->Cell(0, 7, 'WORK ORDER', 0, 1, 'L');
 
+        $logoUrl       = 'https://thebeartraxs.com/wp-content/uploads/2025/05/The-Bear-Traxs-Logo.png';
+        $logoSizeMm    = 25.4; // 1 inch × 1 inch
+        $logoTopMargin = 8;
+        $logoX         = ($this->GetPageWidth() - $logoSizeMm) / 2;
+        $this->Image($logoUrl, $logoX, $logoTopMargin, $logoSizeMm, $logoSizeMm);
+
 		$this->SetFont('Arial', '', 10);
 		$this->SetX(10);
 		$this->Cell(0, 5, get_bloginfo('name'), 0, 1, 'L');
@@ -24,7 +30,7 @@ trait WorkOrder_Sections {
 		// QR in top-right
 		$this->renderQrCode();
 		$this->Ln(3);
-		$this->Line(10, $this->GetY(), 206, $this->GetY());
+		//$this->Line(10, $this->GetY(), 206, $this->GetY());
 		$this->Ln(3);
 	}
 
@@ -42,13 +48,13 @@ trait WorkOrder_Sections {
 		$this->SetXY(10, $startY);
 		$this->Cell($boxW, 6, 'Billing', 1, 2, 'L');
 		$this->SetFont('Arial', '', 9);
-		$this->MultiCell($boxW, 4, $billing . "\n" . $order->get_formatted_billing_address(), 1);
+		$this->MultiCell($boxW, 4, str_replace("<br/>","\n",$order->get_formatted_billing_address()), 1);
 
 		$this->SetFont('Arial', 'B', 10);
 		$this->SetXY(10 + $boxW + 1, $startY);
 		$this->Cell($boxW, 6, 'Shipping', 1, 2, 'L');
 		$this->SetFont('Arial', '', 9);
-		$this->MultiCell($boxW, 4, $shipping . "\n" . $order->get_formatted_shipping_address(), 1);
+		$this->MultiCell($boxW, 4, str_replace("<br/>","\n",$order->get_formatted_shipping_address()), 1);
 
 		$this->Ln(2);
 		$this->SetX(10);
