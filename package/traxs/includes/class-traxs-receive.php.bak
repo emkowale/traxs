@@ -1,0 +1,53 @@
+<?php
+/*
+ * File: includes/class-traxs-receive.php
+ * Description: Persist receive events and flip orders to processing when fully received.
+ */
+namespace Traxs;
+if (!defined('ABSPATH')) exit;
+
+class Receive {
+
+    // payload: { po_id, lines: [ { po_line_id, add_qty (int) } ] }
+    public static function handle_receive(array $payload): array {
+        global $wpdb;
+        $user_id = get_current_user_id();
+        $po_id   = (int)($payload['po_id'] ?? 0);
+        $lines   = (array)($payload['lines'] ?? []);
+        if (!$po_id || !$user_id || empty($lines)) return ['ok'=>false,'msg'=>'invalid payload'];
+
+        foreach ($lines as $ln) {
+            $line_id = sanitize_text_field($ln['po_line_id'] ?? '');
+            $add     = max(0, (int)($ln['add_qty'] ?? 0));
+            if (!$line_id || $add <= 0) continue;
+
+            $wpdb->insert($wpdb->prefix.'traxs_receipts', [
+                'po_number'    => (string)$po_id,
+                'po_line_id'   => $line_id,
+                'wc_order_id'  => 0, // optional per-row; we’ll flip later per order_ids
+                'sku'          => '',
+                'ordered_qty'  => 0, // not needed per row insert
+                'received_qty' => $add,
+                'status'       => 'ok',
+                'user_id'      => $user_id,
+                'created_at'   => current_time('mysql'),
+            ]);
+        }
+
+        // If all lines now have received_qty >= ordered_qty, mark each linked Woo order as processing
+        $all = Eject_Bridge::get_po_lines($po_id);
+        $all_fully = true;
+        $orders_to_flip = [];
+        foreach ($all as $ln) {
+            if ((int)$ln['received_qty'] < (int)$ln['ordered_qty']) $all_fully = false;
+            foreach ($ln['order_ids'] as $oid) $orders_to_flip[$oid] = true;
+        }
+        if ($all_fully) {
+            foreach (array_keys($orders_to_flip) as $oid) WC_Bridge::set_processing((int)$oid);
+            // Optionally close the eject_run by moving to publish; comment out if you prefer manual close
+            // wp_update_post(['ID'=>$po_id,'post_status'=>'publish']);
+        }
+
+        return ['ok'=>true,'po_id'=>$po_id,'fully_received'=>$all_fully];
+    }
+}

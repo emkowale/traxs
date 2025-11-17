@@ -4,7 +4,7 @@
  * Description: Loads modules; central hooks; boots assets.
  * Plugin: Traxs
  * Author: Eric Kowalewski
- * Last Updated: 2025-11-16 09:30 EDT
+ * Last Updated: 2025-11-12 EDT
  */
 namespace Traxs;
 if (!defined('ABSPATH')) exit;
@@ -43,8 +43,6 @@ class Loader {
         // Printing + QR
         require_once TRAXS_PATH . 'includes/class-traxs-print.php';
         require_once TRAXS_PATH . 'includes/class-traxs-qr.php';
-        // Work orders PDF REST endpoint (orders based on received POs)
-        require_once TRAXS_PATH . 'includes/class-traxs-rest-workorders.php';
 
         // Emails, events, scan
         require_once TRAXS_PATH . 'includes/class-traxs-emails.php';
@@ -54,6 +52,7 @@ class Loader {
         // REST layer shim (registers routes); this replaces the legacy class-traxs-rest-receive.php
         require_once TRAXS_PATH . 'includes/rest-traxs.php';
         require_once TRAXS_PATH . 'includes/rest-traxs-drafts.php';
+
 
         // --- Assets bootstrap (adds CSS + app.js + pos-list.js) ---
         require_once TRAXS_PATH . 'includes/class-traxs-assets.php';
