@@ -1,3 +1,8 @@
+v1.0.6 — 2025-11-17
+
+Changed files:
+- CHANGELOG.md
+
 v1.0.5 — 2025-11-17
 
 Changed files:
