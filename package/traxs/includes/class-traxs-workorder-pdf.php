@@ -11,10 +11,11 @@ namespace Traxs;
 
 if (!defined('ABSPATH')) exit;
 
-// Ensure FPDF v1.86 is loaded from /includes/lib/fpdf186/
+// Ensure FPDF is loaded from /vendor/fpdf/
 if (!class_exists('\\FPDF')) {
-    require_once __DIR__ . '/lib/fpdf186/fpdf.php';
+    require_once dirname(__DIR__) . '/vendor/fpdf/fpdf.php';
 }
+
 
 use \FPDF;
 use WC_Order;
@@ -219,7 +220,7 @@ class WorkOrder_PDF extends FPDF
         $this->SetXY(10 + $boxW + 1, $startY);
         $this->Cell($boxW, 6, 'Shipping', 1, 2, 'L');
         $this->SetFont('Arial', '', 9);
-        $this->MultiCell($boxW, 4, $shipping_name + "\n" . $shipping_addr, 1);
+        $this->MultiCell($boxW, 4, $shipping_name . "\n" . $shipping_addr, 1);
 
         // Contact line under both
         $this->Ln(2);

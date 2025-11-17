@@ -26,7 +26,7 @@ class Traxs_REST_Workorders {
             'methods'             => 'GET',
             'callback'            => [self::class, 'handle'],
             // FIX: must be public (and callable)
-            'permission_callback' => [self::class, 'can_run'],
+            'permission_callback' => '__return_true',
             'args'                => [
                 // Optional: single order_id for testing a specific order
                 'order_id' => [
