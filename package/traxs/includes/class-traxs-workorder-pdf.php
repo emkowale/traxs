@@ -34,6 +34,15 @@ class WorkOrder_PDF extends FPDF
     /** @var string URL to Original Art {Print Location} image */
     protected $art_url = '';
 
+    /** @var int|null */
+    protected $workorder_page_start = null;
+
+    /** @var string */
+    protected $workorder_page_placeholder = '';
+
+    /** @var int[] */
+    protected $workorder_page_numbers = [];
+
     /**
      * Entry point: generate and stream a work order PDF for a single WooCommerce order.
      *
@@ -58,6 +67,7 @@ class WorkOrder_PDF extends FPDF
         $pdf->mockup_url = $mockup_url;
         $pdf->art_url    = $art_url;
 
+        $pdf->beginWorkOrderPagination($order);
         $pdf->AddPage();
         $pdf->renderHeaderSection();
         $pdf->renderCustomerSection();
@@ -65,6 +75,7 @@ class WorkOrder_PDF extends FPDF
         $pdf->renderLineItemsTable();
         $pdf->Ln(5);
         $pdf->renderImagesSection();
+        $pdf->finalizeWorkOrderPagination();
 
         $filename = 'work-order-' . $order->get_order_number() . '.pdf';
         $pdf->Output('I', $filename);
@@ -107,6 +118,7 @@ class WorkOrder_PDF extends FPDF
             $pdf->mockup_url = (string) get_post_meta($order_id, '_traxs_mockup_url', true);
             $pdf->art_url    = (string) get_post_meta($order_id, '_traxs_art_front_url', true);
 
+            $pdf->beginWorkOrderPagination($order);
             $pdf->AddPage();
             $pdf->renderHeaderSection();
             $pdf->renderCustomerSection();
@@ -114,6 +126,7 @@ class WorkOrder_PDF extends FPDF
             $pdf->renderLineItemsTable();
             $pdf->Ln(5);
             $pdf->renderImagesSection();
+            $pdf->finalizeWorkOrderPagination();
         }
 
         if ($pdf->PageNo() === 0) {
@@ -140,9 +153,10 @@ class WorkOrder_PDF extends FPDF
             0,
             5,
             sprintf(
-                'Work Order #%s    Page %d of {nb}',
+                'Work Order #%s    Page %d of %s',
                 $this->order->get_order_number(),
-                $this->PageNo()
+                $this->getCurrentWorkOrderPageNumber(),
+                $this->getCurrentWorkOrderTotalToken()
             ),
             0,
             0,
@@ -358,5 +372,67 @@ class WorkOrder_PDF extends FPDF
         // Embed then delete temp file (FPDF has already read it into the PDF)
         $this->Image($tmp, $x, $y, $size, $size);
         QR::cleanup($tmp);
+    }
+
+    protected function beginWorkOrderPagination(WC_Order $order): void
+    {
+        $this->workorder_page_placeholder = sprintf('__WO_NB_%d__', $order->get_id());
+        $this->workorder_page_start = null;
+        $this->workorder_page_numbers = [];
+    }
+
+    protected function finalizeWorkOrderPagination(): void
+    {
+        if (empty($this->workorder_page_numbers) || !$this->workorder_page_placeholder) {
+            $this->workorder_page_placeholder = '';
+            $this->workorder_page_start = null;
+            $this->workorder_page_numbers = [];
+            return;
+        }
+
+        $total = max(1, count($this->workorder_page_numbers));
+        $replacement = (string) $total;
+        foreach ($this->workorder_page_numbers as $page) {
+            if (isset($this->pages[$page])) {
+                $this->pages[$page] = str_replace(
+                    $this->workorder_page_placeholder,
+                    $replacement,
+                    $this->pages[$page]
+                );
+            }
+        }
+
+        $this->workorder_page_placeholder = '';
+        $this->workorder_page_start = null;
+        $this->workorder_page_numbers = [];
+    }
+
+    public function AddPage($orientation = '', $size = '', $rotation = 0)
+    {
+        parent::AddPage($orientation, $size, $rotation);
+        if (!$this->workorder_page_placeholder) {
+            return;
+        }
+
+        $page = $this->PageNo();
+        if ($this->workorder_page_start === null) {
+            $this->workorder_page_start = $page;
+        }
+
+        $this->workorder_page_numbers[] = $page;
+    }
+
+    protected function getCurrentWorkOrderPageNumber(): int
+    {
+        if ($this->workorder_page_start === null) {
+            return max(1, $this->PageNo());
+        }
+
+        return max(1, $this->PageNo() - $this->workorder_page_start + 1);
+    }
+
+    protected function getCurrentWorkOrderTotalToken(): string
+    {
+        return $this->workorder_page_placeholder ?: '1';
     }
 }

@@ -133,19 +133,9 @@ class WorkOrder_PDF extends FPDF {
 		// Empty — header drawn manually in renderHeaderSection()
 	}
 
-	public function Footer() {
-		if (!$this->order) return;
-		$this->SetY(-15);
-		$this->SetFont('Arial', 'I', 8);
-		$this->Cell(
-			0,
-			5,
-			sprintf('Work Order #%s    Page %d of {nb}', $this->order->get_order_number(), $this->PageNo()),
-			0,
-			0,
-			'C'
-		);
-	}
+        public function Footer() {
+                $this->renderFooterSection();
+        }
 
 	// -------------------------------------------------------------------------
 	//  QR Code Renderer (upper right corner)
