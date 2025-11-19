@@ -1,3 +1,12 @@
+v1.0.12 — 2025-11-18
+
+Changed files:
+- artifacts/traxs-v1.0.11.zip
+- package/traxs/.lucy.json
+- package/traxs/CHANGELOG.md
+- package/traxs/release.sh
+- release.sh
+
 v1.0.11 — 2025-11-18
 
 Changed files:
