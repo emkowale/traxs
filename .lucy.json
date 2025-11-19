@@ -5,25 +5,6 @@
   "slug": "traxs",
   "main_file": "traxs.php",
   "branch": "main",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "memory_anchor": true
 }
-
-Traxs / WorkOrder PDF – Next tasks
-
-Version: 1.0.x
-Focus area: WorkOrder_PDF line items
-
-1) Fix layout so each group is:
-   - Row 1: line item table row
-   - Row 2: single image row: [mockup] [art front] [art back] [etc.]
-2) Group by parent SKU instead of vendor+color to remove duplicate descriptions.
-3) SVG/EPS/AI:
-   - Conversion via Imagick blob is working in logs.
-   - Confirm those temp PNGs are actually drawn in the image row.
-Key files:
-   - includes/class-traxs-workorder-pdf.php
-   - includes/pdf/items/trait-line-items-table.php
-   - includes/pdf/items/trait-line-items-groups.php
-   - includes/pdf/items/trait-line-items-assets.php
-   - includes/pdf/items/trait-line-items-meta.php
