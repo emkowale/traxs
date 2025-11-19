@@ -1,3 +1,10 @@
+v1.0.14 — 2025-11-19
+
+Changed files:
+- artifacts/traxs-v1.0.13.zip
+- package/traxs/.lucy.json
+- package/traxs/CHANGELOG.md
+
 v1.0.13 — 2025-11-18
 
 Changed files:
