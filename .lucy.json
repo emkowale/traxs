@@ -5,6 +5,6 @@
   "slug": "traxs",
   "main_file": "traxs.php",
   "branch": "main",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "memory_anchor": true
 }
