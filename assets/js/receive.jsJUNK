@@ -1,0 +1,120 @@
+/*
+ * File: assets/js/receive.js
+ * Description: Goods-to-Receive screen module (skeleton).
+ * Exposes TRAXS_RECEIVE.render(poId) and TRAXS_RECEIVE.route(hash).
+ */
+(function () {
+  'use strict';
+
+  const apiRoot = (window.wpApiSettings && window.wpApiSettings.root) || (location.origin + '/wp-json/');
+  const REST = {
+    lines: apiRoot.replace(/\/+$/, '/') + 'traxs/v1/po-lines',
+  };
+
+  const STATE = { receiveDraft: {} }; // { [poId]: { [lineId]: qty } }
+
+  function h(tag, attrs = {}, kids = []) {
+    const el = document.createElement(tag);
+    for (const k in attrs) (k === 'class') ? (el.className = attrs[k])
+      : (k === 'text') ? (el.textContent = attrs[k]) : el.setAttribute(k, attrs[k]);
+    kids.forEach(c => el.appendChild(c));
+    return el;
+  }
+  function card() { return h('div', { class: 'traxs-card' }); }
+  function header(title) {
+    const wrap = h('div', { class: 'traxs-row' });
+    wrap.appendChild(h('div', { class: 'traxs-row-text', text: title }));
+    wrap.appendChild(h('img', { src: LOGO, alt: 'The Bear Traxs', width: '120', height: '120' }));
+    return wrap;
+  }
+  function loading(msg) {
+    const root = document.getElementById('traxs-root') || document.body;
+    root.innerHTML = '';
+    const c = card();
+    c.appendChild(h('p', { class: 'traxs-row-text', text: msg || 'Loading…' }));
+    root.appendChild(c);
+  }
+  function error(msg) {
+    const root = document.getElementById('traxs-root') || document.body;
+    root.innerHTML = '';
+    const c = card();
+    c.appendChild(header('Error'));
+    c.appendChild(h('p', { class: 'traxs-row-text', text: String(msg || 'Unknown error') }));
+    root.appendChild(c);
+  }
+  function fetchJSON(url) {
+    const headers = {};
+    if (window.wpApiSettings && window.wpApiSettings.nonce) {
+      headers['X-WP-Nonce'] = window.wpApiSettings.nonce;
+    }
+    return fetch(url, { credentials: 'same-origin', headers })
+      .then(r => (r.ok ? r.json() : Promise.reject(r.status)));
+  }
+
+  function renderReceive(poId, payload) {
+    const root = document.getElementById('traxs-root') || document.body;
+    root.innerHTML = '';
+    const c = card();
+    c.appendChild(header('Goods to Receive for PO ' + poId));
+
+    const lines = (payload && Array.isArray(payload.lines)) ? payload.lines : [];
+    if (!lines.length) {
+      c.appendChild(h('p', { class: 'traxs-row-text', text: 'No lines found for this PO.' }));
+      root.appendChild(c); return;
+    }
+    if (!STATE.receiveDraft[poId]) STATE.receiveDraft[poId] = {};
+
+    const list = h('div', { class: 'po-recv-list' });
+    lines.forEach(ln => {
+      const rid = String(ln.po_line_id || '');
+      const ordered = Number(ln.ordered_qty || 0);
+
+      const row = h('div', { class: 'recv-row' });
+      const meta = h('div', { class: 'recv-meta' });
+      meta.appendChild(h('div', { class: 'recv-item', text: String(ln.item || '') }));
+      meta.appendChild(h('div', { class: 'recv-attr', text: [ln.color, ln.size].filter(Boolean).join(' • ') || '—' }));
+      meta.appendChild(h('div', { class: 'recv-qty', text: 'Ordered: ' + ordered }));
+
+      const inputWrap = h('div', { class: 'recv-input' });
+      const inp = h('input', { type: 'number', min: '0', max: String(Math.max(ordered, 0)), step: '1',
+        value: STATE.receiveDraft[poId][rid] ?? '' });
+      inp.addEventListener('input', () => {
+        let v = parseInt(inp.value, 10);
+        if (isNaN(v) || v < 0) v = 0;
+        if (v > ordered) v = ordered;
+        inp.value = String(v);
+        STATE.receiveDraft[poId][rid] = v;
+      });
+
+      inputWrap.appendChild(inp);
+      row.append(meta, inputWrap);
+      list.appendChild(row);
+    });
+
+    const actions = h('div', { class: 'traxs-row' });
+    const btn = h('button', { class: 'traxs-btn primary', text: 'Receive PO' });
+    btn.onclick = () => alert('Receive (placeholder)\nPO: ' + poId +
+      '\nLines: ' + JSON.stringify(STATE.receiveDraft[poId] || {}, null, 2));
+
+    c.appendChild(list);
+    actions.appendChild(btn);
+    c.appendChild(actions);
+    root.appendChild(c);
+  }
+
+  function load(poId) {
+    loading('Loading PO ' + poId + '…');
+    const url = REST.lines + '?po_id=' + encodeURIComponent(String(poId));
+    fetchJSON(url).then(payload => renderReceive(poId, payload)).catch(error);
+  }
+
+  // Public API for the router we’ll introduce next step
+  window.TRAXS_RECEIVE = {
+    render: load,
+    route: function (hash) {
+      const m = /po=([^&]+)/.exec(hash || '');
+      const id = m ? decodeURIComponent(m[1]) : '';
+      if (!id) error('Missing PO id'); else load(id);
+    }
+  };
+})();

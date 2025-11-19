@@ -1,0 +1,143 @@
+/*
+ * File: assets/css/traxs-admin.css
+ * Description: Traxs admin SPA styling (dark blue + yellow, goods-to-receive layout).
+ * Plugin: Traxs
+ * Author: Eric Kowalewski
+ * Last Updated: 2025-11-13 EDT
+ */
+
+.traxs-card {
+  background: #0e243c;
+  color: #f9f9f9;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 960px;
+  border-radius: 12px;
+  border: 2px solid #ffd078;
+  box-sizing: border-box;
+}
+
+/* Header + titles */
+.traxs-card h1,
+.traxs-card h2,
+.traxs-card h3 {
+  color: #ffd078;
+  text-align: center;
+  margin: 0 0 10px;
+}
+
+/* Generic row + text */
+.traxs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.traxs-row-text {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+/* Buttons */
+.traxs-btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: 1px solid #ffd078;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  background: #ffd078;
+  color: #0e243c;
+}
+
+.traxs-btn.primary:hover:not(:disabled) {
+  background: #ffe19b;
+}
+
+.traxs-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* PO list */
+.po-list .po-row {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 208, 120, 0.4);
+}
+
+.po-row-even {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.po-row-odd {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Receive lines */
+.po-recv-list {
+  margin-top: 18px;
+}
+
+.recv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ffd078;
+  background: rgba(0, 0, 0, 0.15);
+  margin-bottom: 10px;
+}
+
+.recv-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recv-item {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.recv-attr,
+.recv-qty {
+  font-size: 13px;
+  color: #f0f0f0;
+}
+
+/* Quantity input */
+.recv-input {
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 110px;
+}
+
+.recv-input input[type="number"] {
+  width: 100px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ffd078;
+  background: #0e243c;
+  color: #ffffff;
+  font-size: 15px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+/* Mobile stacking */
+@media (max-width: 768px) {
+  .recv-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .recv-input {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+  .recv-input input[type="number"] {
+    width: 100%;
+    max-width: 140px;
+  }
+}

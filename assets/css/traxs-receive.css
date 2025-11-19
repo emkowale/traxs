@@ -1,0 +1,103 @@
+/*
+ * File: assets/css/traxs-receive.css
+ * Description: Goods to Receive screen layout (dark navy + yellow cards).
+ * Plugin: Traxs
+ * Author: Eric Kowalewski
+ * Last Updated: 2025-11-13 EDT
+ */
+
+/* Main container for receive lines */
+.po-recv-list {
+  background: #0e243c;
+  border: 2px solid #ffd078;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px auto 12px;
+  max-width: 960px;
+  box-sizing: border-box;
+}
+
+/* Each PO line row */
+.recv-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 208, 120, 0.35);
+  gap: 10px;
+}
+
+.recv-row:last-child {
+  border-bottom: none;
+}
+
+/* Left side: item / color-size / ordered */
+.recv-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 auto;
+}
+
+.recv-item {
+  font-weight: 700;
+  font-size: 15px;
+  color: #ffd078;
+}
+
+.recv-attr {
+  font-size: 13px;
+  color: #f0f0f0;
+}
+
+.recv-qty {
+  font-size: 13px;
+  color: #f0f0f0;
+}
+
+/* Right side: quantity input */
+.recv-input {
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 110px;
+}
+
+.recv-input input[type="number"] {
+  width: 100px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #ffd078;
+  background: #0e243c;
+  color: #ffffff;
+  font-size: 15px;
+  text-align: right;
+  box-sizing: border-box;
+}
+
+/* Actions row below the list (Receive PO button) */
+.po-recv-list + .traxs-row {
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.po-recv-list + .traxs-row .traxs-btn.primary {
+  max-width: 220px;
+}
+
+/* Mobile stacking */
+@media (max-width: 768px) {
+  .recv-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recv-input {
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+
+  .recv-input input[type="number"] {
+    width: 100%;
+    max-width: 160px;
+  }
+}
