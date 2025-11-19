@@ -11,6 +11,7 @@ REPO="traxs"             # GitHub repository name
 PLUGIN_SLUG="traxs"      # folder name of the plugin
 MAIN_FILE="traxs.php"    # main plugin file (in root or inside PLUGIN_SLUG/)
 # ==============================================================================
+
 REMOTE_URL="git@github.com:${OWNER}/${REPO}.git"
 
 C0=$'\033[0m'; C1=$'\033[1;36m'; C2=$'\033[1;32m'; C3=$'\033[1;33m'; C4=$'\033[1;31m'
@@ -27,41 +28,44 @@ for cmd in git php zip rsync curl sed awk; do
   command -v "$cmd" >/dev/null || die "$cmd not found"
 done
 
-# --- Detect / initialize repo root -------------------------------------------
+# --- Detect / initialize repo at plugin dir -----------------------------------
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
-if [[ -d .git ]]; then
-  step "Using existing git repo at $ROOT"
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  REPO_ROOT="$(git rev-parse --show-toplevel)"
+  cd "$REPO_ROOT"
+  step "Using existing git repo at $REPO_ROOT"
 else
-  step "Initializing git repo at $ROOT"
-  git init -b main >/dev/null 2>&1 || git init >/dev/null 2>&1
-  ok "Git repo initialized in $ROOT"
+  step "Initializing new git repo at $ROOT"
+  git init -b main .
+  ok "Git repo initialized at $ROOT"
 fi
 
 # --- Ensure remote exists -----------------------------------------------------
-if ! git remote | grep -q '^origin$'; then
-  step "Setting up git remote"
-  git remote add origin "$REMOTE_URL" 2>/dev/null || true
-  ok "Remote 'origin' set to $REMOTE_URL"
-else
+if git remote | grep -q '^origin$'; then
   git remote set-url origin "$REMOTE_URL" >/dev/null 2>&1 || true
+else
+  step "Setting up git remote"
+  git remote add origin "$REMOTE_URL"
+  ok "Remote 'origin' set to $REMOTE_URL"
 fi
 
-# Try to get latest state from GitHub (if it exists)
 git fetch origin main --tags >/dev/null 2>&1 || true
 git switch -C main >/dev/null 2>&1 || true
 
 # --- Locate main file ---------------------------------------------------------
 if [[ -f "${PLUGIN_SLUG}/${MAIN_FILE}" ]]; then
-  SRC_DIR="${PLUGIN_SLUG}"; MAIN_PATH="${PLUGIN_SLUG}/${MAIN_FILE}"
+  SRC_DIR="${PLUGIN_SLUG}"
+  MAIN_PATH="${PLUGIN_SLUG}/${MAIN_FILE}"
 elif [[ -f "${MAIN_FILE}" ]]; then
-  SRC_DIR="."; MAIN_PATH="${MAIN_FILE}"
+  SRC_DIR="."
+  MAIN_PATH="${MAIN_FILE}"
 else
   die "Cannot find ${MAIN_FILE}"
 fi
 
-# --- Read current version -----------------------------------------------------
+# --- Read current version (header vs tags) ------------------------------------
 step "Reading current version"
 BASE=$(php -r '
 $path=$argv[1];
@@ -70,8 +74,12 @@ preg_match("/Version:\s*([0-9.]+)/i",file_get_contents($path),$m);
 echo $m[1]??"0.0.0";
 ' "$MAIN_PATH")
 
-LATEST=$(git tag --list 'v*' | sed -n 's/^v//p' | sort -V | tail -1)
-[[ -n "$LATEST" && "$(printf '%s\n%s\n' "$LATEST" "$BASE" | sort -V | tail -1)" == "$LATEST" ]] && BASE="$LATEST"
+LATEST=$(git tag --list 'v*' | sed -n 's/^v//p' | sort -V | tail -1 || true)
+if [[ -n "${LATEST:-}" ]]; then
+  if [[ "$(printf '%s\n%s\n' "$LATEST" "$BASE" | sort -V | tail -1)" == "$LATEST" ]]; then
+    BASE="$LATEST"
+  fi
+fi
 
 IFS=. read -r MA MI PA <<<"${BASE:-0.0.0}"
 MA=${MA:-0}; MI=${MI:-0}; PA=${PA:-0}
@@ -95,27 +103,41 @@ file_put_contents($f,$t);
 git add -A
 git commit -m "chore(release): v${NEXT}" >/dev/null 2>&1 || true
 
-# --- Update changelog ---------------------------------------------------------
+# --- Update changelog safely (no HEAD~1 errors) -------------------------------
 step "Updating changelog"
 TODAY=$(date +%Y-%m-%d)
-CHANGES=$(git diff --name-only HEAD~1 HEAD || true)
+touch CHANGELOG.md
+
+commitCount=0
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+  commitCount=$(git rev-list --count HEAD || echo 0)
+fi
+
+if (( commitCount >= 2 )); then
+  CHANGES=$(git diff --name-only HEAD~1 HEAD || true)
+elif (( commitCount == 1 )); then
+  CHANGES=$(git show --pretty='' --name-only HEAD || true)
+else
+  CHANGES=""
+fi
+
 {
   echo "v${NEXT} — ${TODAY}"
   echo ""
-  if [[ -n "$CHANGES" ]]; then
+  if [[ -n "${CHANGES}" ]]; then
     echo "Changed files:"
     echo "$CHANGES" | sed 's/^/- /'
   else
     echo "- No file changes recorded"
   fi
   echo ""
-} | cat - CHANGELOG.md > CHANGELOG.tmp 2>/dev/null || echo "v${NEXT} — ${TODAY}" > CHANGELOG.tmp
-mv CHANGELOG.tmp CHANGELOG.md
+} | cat - CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+
 git add CHANGELOG.md
 git commit -m "docs: changelog v${NEXT}" >/dev/null 2>&1 || true
 
 # --- Tag and push -------------------------------------------------------------
-git tag -f "v${NEXT}"
+git tag -f "v${NEXT}" >/dev/null 2>&1 || true
 step "Pushing to GitHub (local wins)"
 git push -f origin main || warn "Push to origin main failed (check auth)"
 git push -f origin "v${NEXT}" || warn "Tag push failed (check auth)"
@@ -125,7 +147,14 @@ ok "Repository synced"
 step "Building ZIP package"
 mkdir -p artifacts package
 rm -rf "package/${PLUGIN_SLUG}"
-rsync -a --exclude ".git" --exclude "artifacts" --exclude "package" --exclude ".github" --exclude ".DS_Store" "${SRC_DIR}/" "package/${PLUGIN_SLUG}/"
+rsync -a \
+  --exclude ".git" \
+  --exclude "artifacts" \
+  --exclude "package" \
+  --exclude ".github" \
+  --exclude ".DS_Store" \
+  "${SRC_DIR}/" "package/${PLUGIN_SLUG}/"
+
 (
   cd package
   zip -qr "../artifacts/${PLUGIN_SLUG}-v${NEXT}.zip" "${PLUGIN_SLUG}"
@@ -146,12 +175,13 @@ cat > .lucy.json <<JSON
   "memory_anchor": true
 }
 JSON
+
 git add .lucy.json
 git commit -m "chore: update .lucy.json memory anchor v${NEXT}" >/dev/null 2>&1 || true
 git push -f origin main >/dev/null 2>&1 || true
 ok ".lucy.json memory anchor updated"
 
-# --- Publish GitHub release ---------------------------------------------------
+# --- Publish GitHub release (optional) ----------------------------------------
 if command -v gh >/dev/null && gh auth status -h github.com >/dev/null 2>&1; then
   step "Publishing release to GitHub via gh"
   BODY="Release v${NEXT}\n\nSee CHANGELOG.md for details."
@@ -165,4 +195,4 @@ else
   warn "GitHub CLI not authenticated; release upload skipped"
 fi
 
-printf "${C2}🎉 Done — v%s released and synced${C0}\n" "$NEXT"
+printf "${C2}🎉 Done — v${NEXT} released and synced${C0}\n"
