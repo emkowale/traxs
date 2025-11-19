@@ -1,0 +1,52 @@
+[2025-11-17 18:27:36] === Starting PDF generation for Order #Array ===
+[2025-11-17 18:27:36] ❌ Invalid order ID: Array
+[2025-11-17 18:28:15] === Starting PDF generation for Order #Array ===
+[2025-11-17 18:28:15] ❌ Invalid order ID: Array
+[2025-11-17 18:29:47] === Generating PDF for Order ID Array ===
+[2025-11-17 18:29:47] ❌ Invalid order ID
+[2025-11-17 19:03:07] === Generating PDF for Order ID Array ===
+[2025-11-17 19:03:07] ❌ Invalid order ID
+[2025-11-17 19:10:57] === Generating PDF for Order parameter ===
+[2025-11-17 19:10:57] Raw input: Array
+(
+    [0] => 40589
+    [1] => 40590
+    [2] => 40653
+    [3] => 40693
+    [4] => 40766
+    [5] => 40769
+    [6] => 40784
+    [7] => 40785
+    [8] => 40786
+    [9] => 40798
+    [10] => 40803
+    [11] => 40804
+    [12] => 40809
+)
+
+[2025-11-17 19:10:57] Generating QR for URL: https://thebeartraxs.com/traxs/#/scan?somevariablepoid=unknown
+[2025-11-17 19:10:57] ✅ QR embedded for unknown
+[2025-11-17 19:10:57] Attempting to output combined PDF: workorders_20251117_191057.pdf
+[2025-11-17 19:10:57] ✅ Combined PDF successfully generated for 13 order(s).
+[2025-11-17 19:11:07] === Generating PDF for Order parameter ===
+[2025-11-17 19:11:07] Raw input: Array
+(
+    [0] => 40589
+    [1] => 40590
+    [2] => 40653
+    [3] => 40693
+    [4] => 40766
+    [5] => 40769
+    [6] => 40784
+    [7] => 40785
+    [8] => 40786
+    [9] => 40798
+    [10] => 40803
+    [11] => 40804
+    [12] => 40809
+)
+
+[2025-11-17 19:11:07] Generating QR for URL: https://thebeartraxs.com/traxs/#/scan?somevariablepoid=unknown
+[2025-11-17 19:11:07] ✅ QR embedded for unknown
+[2025-11-17 19:11:07] Attempting to output combined PDF: workorders_20251117_191107.pdf
+[2025-11-17 19:11:07] ✅ Combined PDF successfully generated for 13 order(s).

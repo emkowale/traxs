@@ -1,0 +1,65 @@
+/*
+ * File: assets/css/traxs-spinner.css
+ * Description: Ajax spinner overlay + small mobile tweaks for Traxs SPA.
+ * Plugin: Traxs
+ * Author: Eric Kowalewski
+ * Last Updated: 2025-11-17 EDT
+ */
+
+/* Full-screen overlay while Ajax is active */
+.traxs-ajax-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
+
+.traxs-ajax-overlay.is-active {
+  display: flex;
+  pointer-events: none;
+}
+
+/* Simple circular spinner */
+.traxs-ajax-spinner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffd078;
+  animation: traxs-spin 0.9s linear infinite;
+}
+
+@keyframes traxs-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Small-screen layout improvements */
+@media (max-width: 640px) {
+  #traxs-root {
+    padding: 8px;
+  }
+
+  .traxs-card {
+    max-width: none;
+    width: 100%;
+    margin: 8px 0 16px;
+  }
+
+  .traxs-modal {
+    width: 96%;
+    max-width: 420px;
+  }
+
+  .traxs-modal .traxs-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .traxs-modal .traxs-actions .traxs-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
