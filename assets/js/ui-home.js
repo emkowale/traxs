@@ -6,37 +6,41 @@
  * Last Updated: 2025-11-13 EDT
  */
 
-export function createHome(root, h, headerBlock) {
+export function createHome(root, h, headerBlock, logoUrl = '') {
   function renderHome(onNav) {
     root.innerHTML = '';
 
-    const card = h('div', { class: 'traxs-card' });
-    card.appendChild(headerBlock('Traxs'));
+    const screen = h('div', { class: 'traxs-home' });
 
-    const row = h('div', { class: 'traxs-row' });
+    const hero = h('div', { class: 'traxs-home-hero' });
+    const title = h('div', { class: 'traxs-home-title', text: 'Traxs' });
 
-    const btnReceive = h('button', {
-      class: 'traxs-btn primary',
-      text: 'Receive Goods',
+    const logo = h('img', {
+      class: 'traxs-home-logo',
+      src: logoUrl,
+      alt: 'Traxs logo',
+    });
+    logo.addEventListener('click', () => (location.hash = '#/'));
+
+    hero.append(title, logo);
+
+    const buttonsWrap = h('div', { class: 'traxs-home-buttons' });
+    [
+      { text: 'Receive Goods', token: 'pos' },
+      { text: 'Print Work Orders', token: 'print' },
+      { text: 'Scan Work Order', token: 'scan' },
+    ].forEach(({ text, token }) => {
+      const btn = h('button', {
+        class: 'traxs-btn primary',
+        text,
+      });
+      btn.addEventListener('click', () => onNav(token));
+      buttonsWrap.appendChild(btn);
     });
 
-    const btnPrint = h('button', {
-      class: 'traxs-btn primary',
-      text: 'Print Work Orders',
-    });
-
-    const btnScan = h('button', {
-      class: 'traxs-btn primary',
-      text: 'Scan Work Order',
-    });
-
-    btnReceive.onclick = () => onNav('pos');
-    btnPrint.onclick = () => onNav('print');
-    btnScan.onclick = () => onNav('scan');
-
-    row.append(btnReceive, btnPrint, btnScan);
-    card.appendChild(row);
-    root.appendChild(card);
+    screen.append(hero, buttonsWrap);
+    screen.dataset.traxsHome = '1';
+    root.appendChild(screen);
   }
 
   return { renderHome };

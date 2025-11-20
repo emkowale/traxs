@@ -1,1 +1,0 @@
-Place official FPDF library here (fpdf.php). Traxs will use it for PDF generation.

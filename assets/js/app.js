@@ -10,6 +10,7 @@ import { buildHeader }   from './header.js';
 import { createAPI }     from './api.js';
 import { createState }   from './state.js';
 import { createScreens, injectInlineStyles } from './ui.js';
+import { createSpinner } from './spinner.js';
 
 (function () {
   'use strict';
@@ -24,7 +25,8 @@ import { createScreens, injectInlineStyles } from './ui.js';
 
   // Compose dependencies and wire them into ui.js
   const helpers = { buildHeader, LOGO };
-  const api     = createAPI(apiRoot, nonce);
+  const spinner = createSpinner();
+  const api     = createAPI(apiRoot, nonce, spinner);
   const state   = createState();
   const ui      = createScreens(root, helpers, api, state);
 

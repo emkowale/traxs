@@ -21,7 +21,7 @@ trait WorkOrder_Items_Table {
             'production' => 20,
             'vendor'     => 28,
             'color'      => 18,
-            'desc'       => 55,
+            'desc'       => 58,
             'S'          => 9,
             'M'          => 9,
             'L'          => 9,
@@ -60,7 +60,7 @@ trait WorkOrder_Items_Table {
     }
 
     protected function renderLineItemsTableHeader(array $w): void {
-        $this->SetX(10);
+        $this->SetX($this->lMargin);
         $this->Cell($w['production'], 7, 'Production', 1, 0, 'C');
         $this->Cell($w['vendor'], 7, 'Vendor Code', 1, 0, 'C');
         $this->Cell($w['color'], 7, 'Color', 1, 0, 'C');
@@ -76,7 +76,7 @@ trait WorkOrder_Items_Table {
 
     protected function renderLineItemRow(array $w, array $group, float $lineHeight): void {
         $rowHeight = $this->calculateRowHeight($group['description'], $w['desc'], $lineHeight);
-        $startX    = 10;
+        $startX    = $this->lMargin;
         $y         = $this->GetY();
 
         $this->SetXY($startX, $y);
@@ -102,7 +102,7 @@ trait WorkOrder_Items_Table {
     }
 
     protected function ensureLineItemSpace(float $requiredHeight, array $w): void {
-        $limit = 260;
+        $limit = $this->GetPageHeight() - $this->bMargin;
         if ($this->GetY() + $requiredHeight <= $limit) {
             return;
         }
@@ -119,16 +119,18 @@ trait WorkOrder_Items_Table {
     }
 
     protected function renderImagesSection(): void {
-        $w  = 63.5;
-        $x1 = 10;
-        $x2 = $x1 + $w + 5;
+        $gap = 6;
+        $usableWidth = $this->GetPageWidth() - $this->lMargin - $this->rMargin;
+        $boxWidth = ($usableWidth - $gap) / 2;
+        $x1 = $this->lMargin;
+        $x2 = $x1 + $boxWidth + $gap;
         $y  = $this->GetY() + 3;
 
         if ($this->mockup_url) {
-            $this->Image($this->mockup_url, $x1, $y, $w);
+            $this->Image($this->mockup_url, $x1, $y, $boxWidth);
         }
         if ($this->art_url) {
-            $this->Image($this->art_url, $x2, $y, $w);
+            $this->Image($this->art_url, $x2, $y, $boxWidth);
         }
     }
 }

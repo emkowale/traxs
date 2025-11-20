@@ -52,6 +52,25 @@ class WorkOrder_PDF extends FPDF {
 	/** @var string URL to original art image */
 	protected $art_url = '';
 
+	/** @var float Left margin in millimeters (0.5") */
+	protected $margin_left = 6.35;
+
+	/** @var float Right margin in millimeters (0.5") */
+	protected $margin_right = 6.35;
+
+	/** @var float Top margin in millimeters (0.5") */
+	protected $margin_top = 6.35;
+
+	/** @var float Bottom margin in millimeters (0.5") */
+	protected $margin_bottom = 6.35;
+
+	public function __construct($orientation = 'P', $unit = 'mm', $size = 'Letter') {
+		parent::__construct($orientation, $unit, $size);
+
+		$this->SetMargins($this->margin_left, $this->margin_top, $this->margin_right);
+		$this->SetAutoPageBreak(true, $this->margin_bottom);
+	}
+
 	// -------------------------------------------------------------------------
 	//  Entrypoint: Single Order
 	// -------------------------------------------------------------------------
@@ -61,7 +80,6 @@ class WorkOrder_PDF extends FPDF {
 
 		$pdf = new self('P', 'mm', 'Letter');
 		$pdf->AliasNbPages();
-		$pdf->SetAutoPageBreak(true, 15);
 
 		$pdf->order      = $order;
 		$pdf->vendor_pos = $vendor_pos;
@@ -87,7 +105,6 @@ class WorkOrder_PDF extends FPDF {
 	public static function output_for_orders(array $order_ids): void {
 		$pdf = new self('P', 'mm', 'Letter');
 		$pdf->AliasNbPages();
-		$pdf->SetAutoPageBreak(true, 15);
 
 		foreach ($order_ids as $order_id) {
 			$order = wc_get_order($order_id);
@@ -157,9 +174,9 @@ class WorkOrder_PDF extends FPDF {
 		try {
 			$tmp = QR::makeTempPngForOrder($order_id, 'M', 4, 2);
 			$size = 25;
-			$pageRight = 216 - 10;
+			$pageRight = $this->GetPageWidth() - $this->rMargin;
 			$x = $pageRight - $size;
-			$y = 10;
+			$y = $this->tMargin;
 			$this->Image($tmp, $x, $y, $size, $size);
 			QR::cleanup($tmp);
 		}

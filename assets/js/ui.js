@@ -41,7 +41,7 @@ export function createScreens(root, helpers, api, state) {
   const headerBlock = (title, subtitle) =>
     buildHeader ? buildHeader(h, LOGO, title, subtitle) : h('div', { text: title });
 
-  const home = createHome(root, h, headerBlock);
+  const home = createHome(root, h, headerBlock, LOGO);
   const po   = createPOList(root, h, headerBlock, getPOs, setPoLabel);
   const recv = createReceive(
     root,

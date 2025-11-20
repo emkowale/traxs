@@ -20,6 +20,11 @@
 
 if (!defined('ABSPATH')) exit;
 define('TRAXS_VERSION','1.0.2');
+if (!defined('TRAXS_PATH')) define('TRAXS_PATH', plugin_dir_path(__FILE__));
+if (!defined('TRAXS_URL')) define('TRAXS_URL', plugin_dir_url(__FILE__));
+
+// Ensure login screen branding/styles always load.
+require_once TRAXS_PATH . 'includes/login-style.php';
 /**
  * Register /traxs/ endpoint
  */
@@ -32,20 +37,31 @@ add_action('init', 'traxs_register_routes');
 /**
  * Render SPA container for /traxs/
  */
-add_action('template_redirect', function() {
-    global $wp_query;
-    if (isset($wp_query->query_vars['traxs'])) {
-        status_header(200);
-        nocache_headers();
-        echo '<!DOCTYPE html><html><head>';
-        echo '<meta charset="utf-8">';
-        wp_head();
-        echo '</head><body>';
-        echo '<div id="traxs-root" class="traxs-root"></div>';
-        wp_footer();
-        echo '</body></html>';
-        exit;
-    }
+	add_action('template_redirect', function() {
+	    global $wp_query;
+	    if (isset($wp_query->query_vars['traxs'])) {
+	        if (!is_user_logged_in()) {
+	            auth_redirect();
+	            exit;
+	        }
+
+	        if (function_exists('show_admin_bar')) {
+	            show_admin_bar(false);
+	        }
+
+	        status_header(200);
+	        nocache_headers();
+	        echo '<!DOCTYPE html><html><head>';
+	        echo '<meta charset="utf-8">';
+	        echo '<style id="traxs-admin-bar-reset">html{margin-top:0!important;}body{margin-top:0!important;}#wpadminbar{display:none!important;}</style>';
+	        wp_head();
+	        $body_classes = array_map('sanitize_html_class', array_merge(get_body_class(), ['traxs-app', 'traxs-kiosk']));
+	        echo '<body class="' . esc_attr(implode(' ', array_unique($body_classes))) . '">';
+	        echo '<div id="traxs-root" class="traxs-root"></div>';
+	        wp_footer();
+	        echo '</body></html>';
+	        exit;
+	    }
 });
 
 /**
@@ -84,6 +100,12 @@ function traxs_enqueue_scripts() {
     $css_path = plugin_dir_path(__FILE__) . 'assets/css/traxs.css';
     if (file_exists($css_path)) {
         wp_enqueue_style('traxs-style', $css_file, [], filemtime($css_path));
+    }
+
+    $spinner_css = plugin_dir_url(__FILE__) . 'assets/css/traxs-spinner.css';
+    $spinner_path = plugin_dir_path(__FILE__) . 'assets/css/traxs-spinner.css';
+    if (file_exists($spinner_path)) {
+        wp_enqueue_style('traxs-spinner', $spinner_css, [], filemtime($spinner_path));
     }
 }
 
