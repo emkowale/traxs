@@ -1,5 +1,16 @@
 v1.0.15 — 2025-11-20
 
+## [1.0.16] - 2025-12-20
+
+### Changes
+* Release v1.0.3 (c33db0e)
+* chore: update .lucy.json memory anchor v1.0.15 (afead85)
+* docs: changelog v1.0.15 (3d78dfd)
+* chore(release): v1.0.15 (666522d)
+* Add .gitignore to ignore artifacts/*.zip (e030c94)
+* chore: update .lucy.json memory anchor v1.0.14 (db08666)
+
+
 Changed files:
 - artifacts/traxs-v1.0.10.zip
 - artifacts/traxs-v1.0.11.zip
