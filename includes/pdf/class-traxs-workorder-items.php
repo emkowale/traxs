@@ -12,6 +12,8 @@ require_once __DIR__ . '/items/trait-line-items-groups.php';
 require_once __DIR__ . '/items/trait-line-items-assets.php';
 require_once __DIR__ . '/items/trait-line-items-util.php';
 require_once __DIR__ . '/items/trait-line-items-meta.php';
+require_once __DIR__ . '/items/trait-workorder-item-rows.php';
+require_once __DIR__ . '/items/trait-workorder-item-images.php';
 
 trait WorkOrder_Items {
     use WorkOrder_Items_Table;
@@ -19,4 +21,6 @@ trait WorkOrder_Items {
     use WorkOrder_Items_Assets;
     use WorkOrder_Items_Util;
     use WorkOrder_Items_Meta;
+    use WorkOrder_ItemRows;
+    use WorkOrder_ItemImages;
 }

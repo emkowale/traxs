@@ -11,7 +11,8 @@ namespace Traxs;
 
 if (!defined('ABSPATH')) exit;
 
-require_once __DIR__ . '/class-traxs-workorder-pdf.php';
+require_once __DIR__ . '/class-traxs-po-service.php';
+require_once TRAXS_BACKEND_DIR . 'class-eject-workorders.php';
 
 class Traxs_REST_Workorders {
 
@@ -49,43 +50,198 @@ class Traxs_REST_Workorders {
         // Optional single-order test
         $single_id = absint($req->get_param('order_id'));
         if ($single_id) {
-            // Skip completed orders; only outstanding become work orders
             $o = wc_get_order($single_id);
             if ($o && $o->get_status() !== 'completed') {
-                WorkOrder_PDF::output_for_orders([$single_id]); // streams & exits
+                \Eject_Workorders::output_single_order_pdf($single_id);
             } else {
                 return new \WP_Error('traxs_no_work', 'Order is completed or invalid.', ['status' => 400]);
             }
         }
 
-        // Find ALL non-completed orders whose goods are fully received (flag set by Receive flow)
-        $args = [
-            'limit'        => -1,
-            'status'       => array_diff(wc_get_is_paid_statuses(), ['completed']),
-            'return'       => 'ids',
-            'orderby'      => 'date',
-            'order'        => 'ASC',
-            'paginate'     => false,
-        ];
-
-        // Only orders marked ready by Traxs
-        // (set this meta to "yes" when all POs supplying the order are fully received)
-        $ids = wc_get_orders($args);
-        $ready = [];
-
-        foreach ($ids as $order_id) {
-            $ready_flag = get_post_meta($order_id, '_traxs_ready_for_workorder', true);
-            if ($ready_flag === 'yes') {
-                $ready[] = $order_id;
-            }
-        }
-
-        if (empty($ready)) {
+        $processing = self::get_processing_order_ids();
+        if (empty($processing)) {
             return new \WP_Error('traxs_none', 'No outstanding work orders to print.', ['status' => 404]);
         }
 
-        // Stream multi-page PDF (one page per order); this exits.
-        WorkOrder_PDF::output_for_orders($ready);
+        \Eject_Workorders::output_for_order_ids($processing);
+    }
+
+    private static function get_processing_order_ids(): array {
+        return wc_get_orders([
+            'limit'   => -1,
+            'status'  => 'processing',
+            'return'  => 'ids',
+            'orderby' => 'date',
+            'order'   => 'ASC',
+        ]);
+    }
+
+    private static function orders_with_received_items(): array {
+        $matched = [];
+        $pos = get_posts([
+            'post_type'   => 'eject_po',
+            'post_status' => ['publish', 'draft'],
+            'numberposts' => -1,
+            'meta_query'  => [
+                [
+                    'key'     => '_order_ids',
+                    'compare' => 'EXISTS',
+                ],
+            ],
+        ]);
+
+        foreach ($pos as $po) {
+            $po_id = (int) ($po instanceof \WP_Post ? $po->ID : $po);
+            if ($po_id <= 0) {
+                continue;
+            }
+            $lines = Traxs_PO_Service::get_po_lines($po_id);
+            foreach ($lines as $line) {
+                $received = isset($line['received_qty']) ? (int)$line['received_qty'] : 0;
+                if ($received <= 0) {
+                    continue;
+                }
+                $orders = isset($line['order_ids']) && is_array($line['order_ids'])
+                    ? array_map('intval', $line['order_ids'])
+                    : [];
+            foreach ($orders as $oid) {
+                if ($oid <= 0) {
+                    continue;
+                }
+                $order = wc_get_order($oid);
+                if (!$order || $order->get_status() !== 'processing') {
+                    continue;
+                }
+                $matched[$oid] = $oid;
+            }
+            }
+        }
+
+        return array_values($matched);
+    }
+
+    private static function get_run_ids_for_orders(array $order_ids): array {
+        if (empty($order_ids)) {
+            return [];
+        }
+
+        $lookup = array_fill_keys(array_map('intval', $order_ids), true);
+        $run_ids = [];
+
+        $pos = get_posts([
+            'post_type'      => 'eject_po',
+            'post_status'    => ['publish', 'draft'],
+            'numberposts'    => -1,
+            'meta_query'     => [
+                [
+                    'key'     => '_order_ids',
+                    'compare' => 'EXISTS',
+                ]
+            ],
+        ]);
+
+        foreach ($pos as $po) {
+            $ordered = (array) get_post_meta($po->ID, '_order_ids', true);
+            foreach ($ordered as $oid) {
+                $oid = (int) $oid;
+                if (!isset($lookup[$oid])) {
+                    continue;
+                }
+                $run = get_post_meta($po->ID, '_run_id', true);
+                if ($run === '') {
+                    $run = 'po-' . $po->ID;
+                }
+                $run_ids[$run] = $run;
+                break;
+            }
+        }
+
+        return array_values($run_ids);
+    }
+
+    private static function auto_flag_ready_orders(array $order_ids): array {
+        if (empty($order_ids)) {
+            return [];
+        }
+
+        $ready = [];
+        $pending = [];
+        foreach ($order_ids as $order_id) {
+            $order_id = (int)$order_id;
+            if ($order_id <= 0) {
+                continue;
+            }
+            $ready_flag = get_post_meta($order_id, '_traxs_ready_for_workorder', true);
+            if ($ready_flag === 'yes') {
+                $ready[$order_id] = $order_id;
+            } else {
+                $pending[$order_id] = $order_id;
+            }
+        }
+
+        if (!empty($pending)) {
+            $auto_ready = self::orders_ready_via_po(array_values($pending));
+            foreach ($auto_ready as $order_id) {
+                update_post_meta($order_id, '_traxs_ready_for_workorder', 'yes');
+                $ready[$order_id] = $order_id;
+            }
+        }
+
+        return array_values(array_unique($ready));
+    }
+
+    private static function orders_ready_via_po(array $order_ids): array {
+        if (empty($order_ids)) {
+            return [];
+        }
+
+        $lookup = array_fill_keys(array_map('intval', $order_ids), true);
+        $matched = [];
+
+        $pos = get_posts([
+            'post_type'   => 'eject_po',
+            'post_status' => ['publish', 'draft'],
+            'numberposts' => -1,
+            'meta_query'  => [
+                [
+                    'key'     => '_order_ids',
+                    'compare' => 'EXISTS',
+                ],
+            ],
+        ]);
+
+        foreach ($pos as $po) {
+            if (empty($lookup)) {
+                break;
+            }
+
+            $po_id = (int) ($po instanceof \WP_Post ? $po->ID : $po);
+            if ($po_id <= 0) {
+                continue;
+            }
+            $lines = Traxs_PO_Service::get_po_lines($po_id);
+            foreach ($lines as $line) {
+                $received = isset($line['received_qty']) ? (int)$line['received_qty'] : 0;
+                if ($received <= 0) {
+                    continue;
+                }
+                $orders = isset($line['order_ids']) && is_array($line['order_ids'])
+                    ? array_map('intval', $line['order_ids'])
+                    : [];
+                foreach ($orders as $oid) {
+                    if ($oid <= 0 || !isset($lookup[$oid])) {
+                        continue;
+                    }
+                    $matched[$oid] = $oid;
+                    unset($lookup[$oid]);
+                }
+                if (empty($lookup)) {
+                    break 2;
+                }
+            }
+        }
+
+        return array_values($matched);
     }
 }
 

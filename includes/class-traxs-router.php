@@ -55,7 +55,7 @@ class Router {
         status_header(200);
         nocache_headers();
 
-        echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
+        echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">';
         echo '<title>Traxs</title>';
         echo '<link rel="stylesheet" href="' . esc_url($css_traxs)   . '">';
         echo '<link rel="stylesheet" href="' . esc_url($css_receive) . '">';

@@ -26,7 +26,7 @@ class Receive {
      *
      * This method:
      *  - Inserts receipt rows into traxs_receipts (incremental).
-     *  - Re-reads PO lines via Eject_Bridge::get_po_lines($po_id).
+ *  - Re-reads PO lines via Traxs_PO_Service::get_po_lines($po_id).
      *  - Computes:
      *      - PO fully received vs partial (your scenarios 1/2 vs 3).
      *      - Per-order readiness:
@@ -67,11 +67,32 @@ class Receive {
         foreach ($lines as $ln) {
             $line_id = sanitize_text_field($ln['po_line_id'] ?? '');
 
-            // Support both old ('add_qty') and new ('actual_qty') wire formats.
-            $raw_add = $ln['add_qty'] ?? $ln['actual_qty'] ?? 0;
-            $add     = max(0, (int) $raw_add);
+            if (!$line_id) {
+                continue;
+            }
 
-            if (!$line_id || $add <= 0) {
+            $add      = 0;
+            $raw_add  = $ln['add_qty'] ?? null;
+            $target   = null;
+
+            if ($raw_add !== null) {
+                $add = max(0, (int) $raw_add);
+            } else {
+                if (isset($ln['actual_qty'])) {
+                    $target = max(0, (int) $ln['actual_qty']);
+                } elseif (isset($ln['qty'])) {
+                    $target = max(0, (int) $ln['qty']);
+                }
+                if ($target !== null) {
+                    $current = Traxs_PO_Service::received_qty($po_number, $line_id);
+                    $delta   = $target - (int) $current;
+                    if ($delta > 0) {
+                        $add = $delta;
+                    }
+                }
+            }
+
+            if ($add <= 0) {
                 continue;
             }
 
@@ -88,8 +109,10 @@ class Receive {
             ]);
         }
 
+        $bridge_available = class_exists(__NAMESPACE__ . '\\WC_Bridge');
+
         // --- 2) Recompute PO lines from Eject (single source of truth) ---
-        $all_lines = Eject_Bridge::get_po_lines($po_id);
+        $all_lines = Traxs_PO_Service::get_po_lines($po_id);
         if (!is_array($all_lines)) {
             $all_lines = [];
         }
@@ -100,7 +123,8 @@ class Receive {
 
         // Per-order flags: [ order_id => ['any_short'=>bool, 'any_received'=>bool] ]
         $order_flags = [];
-        $orders_flat = [];    // for the old "flip all to processing" behavior
+        $orders_flat = [];    // retains every order touched by this PO
+        $orders_ready = [];   // orders whose line items are fully received
 
         foreach ($all_lines as $ln) {
             $any_lines = true;
@@ -108,8 +132,13 @@ class Receive {
             $ordered  = isset($ln['ordered_qty'])  ? (int)$ln['ordered_qty']  : 0;
             $received = isset($ln['received_qty']) ? (int)$ln['received_qty'] : 0;
 
-            $line_short    = ($received < $ordered);   // your scenario 3 trigger
-            $line_received = ($received > 0);         // anything actually received
+            $line_short = ($received < $ordered);
+
+            // Consider the line ready once the aggregated received value meets or exceeds the ordered qty.
+            $line_ready = $ordered > 0
+                ? ($received >= $ordered)
+                : ($received > 0);
+            $line_received = ($received > 0);
 
             if ($line_short) {
                 $any_short = true;
@@ -138,6 +167,12 @@ class Receive {
                 }
 
                 $orders_flat[$oid] = true;
+                if ($line_ready && !$line_short) {
+                    $orders_ready[$oid] = true;
+                }
+                if ($line_ready && $bridge_available) {
+                    \Traxs\WC_Bridge::set_processing($oid);
+                }
             }
         }
 
@@ -156,17 +191,17 @@ class Receive {
         $po_fully_received = !$any_short;
 
         if ($po_fully_received && !empty($orders_flat)) {
-            if (class_exists(__NAMESPACE__ . '\\WC_Bridge')) {
-                foreach (array_keys($orders_flat) as $oid) {
-                    WC_Bridge::set_processing((int)$oid);
-                }
-            }
-
             // Close the PO so it drops out of "open POs" (Receive Goods list)
             wp_update_post([
                 'ID'          => $po_id,
                 'post_status' => 'publish',
             ]);
+        }
+
+        if (!empty($orders_ready) && $bridge_available) {
+            foreach (array_keys($orders_ready) as $oid) {
+                WC_Bridge::set_processing((int)$oid);
+            }
         }
 
         // --- 4) Per-order work-order readiness flags (for Print Work Orders) ---

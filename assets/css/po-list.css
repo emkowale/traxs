@@ -6,35 +6,15 @@
  * Last Updated: 2025-11-06 EDT
  */
 
-/* Make PO buttons render as full-width bars */
+/* Make PO buttons render as full-width elements */
 .traxs-card .traxs-row .traxs-btn.primary {
   display: block;
   width: 100%;
-  max-width: 520px;   /* narrow phones still OK */
+  max-width: 520px;
   margin: 6px auto;
   padding: 14px 16px;
   text-align: left;
-  border: 0;
-  border-radius: 0;
   font-weight: 700;
-}
-
-/* Default PO bar colors (even-row look) */
-.traxs-card .traxs-row .traxs-btn.primary {
-  background: #0e243c;   /* navy */
-  color: #ffd078;        /* yellow text */
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,0.12);
-}
-
-/* Optional hover (does not change brand) */
-.traxs-card .traxs-row .traxs-btn.primary:hover {
-  opacity: 0.92;
-}
-
-/* When we tag rows as .pos-row.odd/.even (next step), swap colors */
-.pos-row.odd .traxs-btn.primary {
-  background: #ffd078;   /* yellow bar */
-  color: #0e243c;        /* navy text */
 }
 
 /* Title “POs” styling stays on brand */

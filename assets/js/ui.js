@@ -33,6 +33,8 @@ export function createScreens(root, helpers, api, state) {
     setPoLabel,
     getReceiveDraft,
     getReceiveInputs,
+    setReceiveDraftValue,
+    clearReceiveDraft,
     clearPoState,
   } = state || {};
   const { getPOs, getPOLines, postReceive } = api || {};
@@ -53,6 +55,8 @@ export function createScreens(root, helpers, api, state) {
     setPoLabel,
     getReceiveDraft,
     getReceiveInputs,
+    setReceiveDraftValue,
+    clearReceiveDraft,
     clearPoState
   );
 
@@ -62,6 +66,7 @@ export function createScreens(root, helpers, api, state) {
     renderError: po.renderError,
     loadPOList: po.loadPOList,
     loadReceive: recv.loadReceive,
+    getPoLabel,
   };
 }
 

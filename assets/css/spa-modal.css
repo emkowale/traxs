@@ -7,7 +7,6 @@
  */
 body.traxs-app,
 .traxs-card,
-.traxs-btn,
 .traxs-row-text,
 .recv-item {
   font-family: 'Roboto Condensed', sans-serif;
@@ -65,22 +64,6 @@ body.traxs-app,
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-}
-
-.traxs-btn {
-  padding: 6px 10px;
-  border: 1px solid #863d3d;
-  font-size: 24px;
-  background: #863d3d;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.traxs-btn.primary {
-  font-weight: 700;
-  background: #863d3d;
-  color: #fff;
-  border-color: #863d3d;
 }
 
 /* Notices */

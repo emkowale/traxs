@@ -18,83 +18,72 @@ body.traxs-app {
   background: #0e243c;
   color: #fff;
   font-family: "Roboto Condensed", sans-serif;
-  font-size: clamp(17px, 4vw, 20px);
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0;
   min-height: 100vh;
   width: 100%;
+  padding: 40px 0;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
+  overflow-x: auto;
 }
 
 body.traxs-app #wpadminbar {
   display: none !important;
 }
 
-body.traxs-app *,
-body.traxs-app *::before,
-body.traxs-app *::after {
-  box-sizing: border-box;
-}
-
 #traxs-root {
   background: #0e243c;
   color: #fff;
   min-height: 100vh;
-  width: min(560px, 100%);
-  padding: clamp(12px, 5vw, 32px);
   margin: 0 auto;
+  padding: 40px 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: clamp(20px, 5vw, 32px);
+  margin-left: 20px;
+  margin-right: 20px;
 }
 
 .traxs-home {
-  width: 100%;
+  width: 520px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: clamp(16px, 5vw, 32px);
-  padding: clamp(16px, 4vw, 32px);
 }
 
 .traxs-home-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(12px, 4vw, 20px);
   width: 100%;
 }
 
 .traxs-home-title {
-  font-size: clamp(40px, 14vw, 56px);
-  font-weight: 700;
   letter-spacing: 2px;
+  width: 100%;
   text-transform: uppercase;
+  font-weight: bold;
+  font-size: 50px;
 }
 
 .traxs-home-logo {
-  width: clamp(200px, 60vw, 300px);
+  width: 280px;
   height: auto;
+  display: block;
+  margin: 0 auto;
 }
 
 .traxs-home-buttons {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 4vw, 20px);
-}
-
-.traxs-home-buttons .traxs-btn {
-  max-width: 100%;
-  font-size: clamp(20px, 5vw, 28px);
-  padding: clamp(16px, 4vw, 22px);
+  align-items: center;
+  padding-top: 30px;
 }
 
 /* Remove white cards */
@@ -103,7 +92,6 @@ body.traxs-app *::after {
   border: 0;
   box-shadow: none;
   width: 100%;
-  max-width: 640px;
 }
 
 /* Stack & center rows on mobile */
@@ -119,7 +107,6 @@ body.traxs-app *::after {
 /* Title above logo — use existing text container */
 .traxs-row-text {
   color: #ffd078;      /* heading color */
-  font-size: clamp(20px, 5vw, 28px);
   text-align: center;
   width: 100%;
   word-wrap: break-word;
@@ -129,26 +116,22 @@ body.traxs-app *::after {
 .traxs-row img {
   display: block;
   margin: 0 auto;
-  width: clamp(120px, 40vw, 200px);
   height: auto;
 }
 
-/* Buttons: stacked, centered, no radius */
+/* Buttons: allow theme to decorate while keeping layout */
 .traxs-btn,
 .traxs-btn.primary {
   display: block;
   width: 100%;
   max-width: 500px;
   margin: 6px auto;
-  padding: clamp(16px, 4vw, 22px);
-  background: #ffd078;
-  color: #0e243c;
-  border: 0;
-  border-radius: 0;
   font-weight: 600;
-  font-size: clamp(20px, 5vw, 26px);
-  cursor: pointer;
   text-align: center;
+}
+
+.traxs-home-buttons .traxs-btn {
+  width: 100%;
 }
 
 /* Tables (if viewed) on dark bg */
@@ -166,47 +149,121 @@ body.traxs-app *::after {
   word-break: break-word;
 }
 
-/* Stop mobile browsers from auto-zooming Traxs inputs */
-body.traxs-app input,
-body.traxs-app select,
-body.traxs-app textarea {
-  font-size: 16px;      /* ≥16px disables focus zoom on iOS/Android */
+.recv-table {
+  width: calc(100% - 40px);
+  margin: 18px 20px;
+  border-collapse: collapse;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+
+.recv-table th,
+.recv-table td {
+  font-size: 18px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 208, 120, 0.4);
+}
+
+.recv-table th {
+  color: #863d3d !important;
+  background: rgb(255, 208, 120) !important;
+}
+
+.recv-table th:nth-child(1),
+.recv-table td:nth-child(1) {
+  text-align: left;
+  width: 75%;
+}
+
+.recv-table th:nth-child(2),
+.recv-table td:nth-child(2),
+.recv-table th:nth-child(3),
+.recv-table td:nth-child(3) {
+  text-align: center;
+  width: 12%;
+}
+
+.recv-table td:nth-child(3) input[type="number"] {
+  width: 56px;
+}
+
+.recv-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.recv-table tbody tr:nth-child(even) {
+  background: #863d3d !important;
+}
+
+.recv-table tbody tr.traxs-row-received {
+  opacity: 0.85;
+}
+
+.recv-table td {
+  font-size: 15px;
+  color: #f0f0f0;
+}
+
+.recv-table tbody tr.recv-line-row td:nth-child(1) {
+  word-break: break-word;
+}
+
+.recv-table input[type="number"] {
   width: 100%;
-  max-width: 100%;
+  max-width: 80px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ffd078;
+  background: #0e243c;
+  color: #ffffff;
+  font-size: 15px;
+  text-align: right;
+  box-sizing: border-box;
 }
 
-/* Traxs: Receive PO button style when PO is partially received */
-.traxs-btn.primary.partial {
+.recv-line-row,
+.recv-line-orders-row {
+  transition: background 0.2s ease-in-out;
+}
+
+.recv-line-row td {
+  border-bottom: 0;
+}
+
+.recv-line-row--dark td,
+.recv-line-orders-row.recv-line-row--dark td {
+  background: #0e243c;
+}
+
+.recv-line-row--maroon td,
+.recv-line-orders-row.recv-line-row--maroon td {
+  background: #863d3d !important;
+}
+
+.recv-line-orders-row td {
+  padding: 6px 14px 16px;
+  border-bottom: 1px solid rgba(255, 208, 120, 0.4);
+}
+
+.recv-line-orders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.recv-line-order-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: none;
+}
+
+.recv-line-row--maroon .recv-line-order-btn {
   background: #ffd078;
-  color: #863d3d;
-  border-color: #ffd078;
-}
-
-@media (min-width: 768px) {
-  .traxs-row {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 20px;
-  }
-  .traxs-row-text,
-  .traxs-card {
-    text-align: left;
-  }
-}
-
-@media (max-width: 600px) {
-  #traxs-root {
-    padding: 24px 12px 40px;
-  }
-  .traxs-card {
-    max-width: 100%;
-  }
-  .traxs-btn {
-    max-width: 100%;
-  }
-  .traxs-table th,
-  .traxs-table td {
-    padding: 6px 4px;
-  }
+  color: #0e243c;
+  border: 1px solid #ffd078;
 }

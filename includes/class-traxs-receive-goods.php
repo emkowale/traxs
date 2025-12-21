@@ -21,8 +21,8 @@ class Traxs_Receive_Goods_Page {
         $parent_slug = 'traxs'; // Adjust if your Traxs top-level slug differs.
         add_submenu_page(
             $parent_slug,
-            __('Receive Goods', 'traxs'),
-            __('Receive Goods', 'traxs'),
+            __('Receive POs', 'traxs'),
+            __('Receive POs', 'traxs'),
             'manage_woocommerce',
             'traxs-receive-goods',
             [__CLASS__, 'render_page']
@@ -72,7 +72,7 @@ class Traxs_Receive_Goods_Page {
         if (file_exists($view)) {
             require $view;
         } else {
-            echo '<div class="wrap"><h1>' . esc_html__('Receive Goods', 'traxs') . '</h1>';
+            echo '<div class="wrap"><h1>' . esc_html__('Receive POs', 'traxs') . '</h1>';
             echo '<div class="notice notice-error"><p>' . esc_html__('View file not found: includes/views/view-receive-goods.php', 'traxs') . '</p></div></div>';
         }
     }

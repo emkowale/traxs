@@ -11,6 +11,7 @@ import { createAPI }     from './api.js';
 import { createState }   from './state.js';
 import { createScreens, injectInlineStyles } from './ui.js';
 import { createSpinner } from './spinner.js';
+import './traxs-spinner.js';
 
 (function () {
   'use strict';
@@ -53,25 +54,38 @@ import { createSpinner } from './spinner.js';
     if (r.startsWith('/pos')) {
       ui.loadPOList((poId) => {
         if (!poId) return;
-        location.hash = '#/receive?po=' + encodeURIComponent(String(poId));
+        const poLabel = ui.getPoLabel ? ui.getPoLabel(poId) : '';
+        const parts = [];
+        if (poLabel) {
+          parts.push('po=' + encodeURIComponent(poLabel));
+        }
+        parts.push('po_id=' + encodeURIComponent(String(poId)));
+        location.hash = '#/receive?' + parts.join('&');
       });
       return;
     }
 
     if (r.startsWith('/receive')) {
-      const m    = /po=([^&]+)/.exec(r);
-      const poId = m ? decodeURIComponent(m[1]) : '';
+      const query = r.split('?')[1] || '';
+      const params = new URLSearchParams(query);
+      const poId = params.get('po_id') || '';
       if (!poId) {
         ui.renderError('Missing PO id');
         return;
       }
-      ui.loadReceive(poId, ({ isPartial }) => {
-        if (isPartial) {
-          // Partial: back to POs list
+      const storedLabel = ui.getPoLabel ? ui.getPoLabel(poId) : '';
+      const needsRewrite =
+        storedLabel &&
+        (!params.has('po') || params.get('po') === '' || params.get('po') === poId);
+      if (needsRewrite) {
+        const labelPart = 'po=' + encodeURIComponent(storedLabel);
+        const idPart = 'po_id=' + encodeURIComponent(poId);
+        location.hash = '#/receive?' + labelPart + '&' + idPart;
+        return;
+      }
+      ui.loadReceive(poId, ({ isComplete }) => {
+        if (isComplete) {
           location.hash = '#/pos';
-        } else {
-          // Full receive: main menu
-          location.hash = '#/';
         }
       });
       return;

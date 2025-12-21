@@ -40,26 +40,6 @@
 }
 
 /* Buttons */
-.traxs-btn {
-  padding: 10px 16px;
-  border-radius: 6px;
-  border: 1px solid #ffd078;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  background: #ffd078;
-  color: #0e243c;
-}
-
-.traxs-btn.primary:hover:not(:disabled) {
-  background: #ffe19b;
-}
-
-.traxs-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
 /* PO list */
 .po-list .po-row {
   padding: 12px;
@@ -75,47 +55,57 @@
 }
 
 /* Receive lines */
-.po-recv-list {
+.recv-table {
+  width: 100%;
   margin-top: 18px;
-}
-
-.recv-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
+  border-collapse: collapse;
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  border: 1px solid #ffd078;
-  background: rgba(0, 0, 0, 0.15);
-  margin-bottom: 10px;
+  overflow: hidden;
+  table-layout: fixed;
 }
 
-.recv-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+.recv-table th,
+.recv-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 208, 120, 0.4);
 }
 
-.recv-item {
-  font-weight: 700;
+.recv-table th:nth-child(1),
+.recv-table td:nth-child(1) {
+  width: 66%;
+}
+
+.recv-table th:nth-child(2),
+.recv-table td:nth-child(2),
+.recv-table th:nth-child(3),
+.recv-table td:nth-child(3) {
+  width: 17%;
+}
+
+.recv-table th {
+  text-align: left;
+  font-size: 14px;
+  color: #863d3d !important;
+  background: rgb(255, 208, 120) !important;
+}
+
+.recv-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.recv-table tbody tr:nth-child(even) {
+  background: #863d3d !important;
+}
+
+.recv-table td {
   font-size: 15px;
-}
-
-.recv-attr,
-.recv-qty {
-  font-size: 13px;
   color: #f0f0f0;
 }
 
-/* Quantity input */
-.recv-input {
-  display: flex;
-  justify-content: flex-end;
-  flex: 0 0 110px;
-}
-
-.recv-input input[type="number"] {
-  width: 100px;
+.recv-table input[type="number"] {
+  width: 100%;
+  max-width: 140px;
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #ffd078;
@@ -124,20 +114,4 @@
   font-size: 15px;
   text-align: right;
   box-sizing: border-box;
-}
-
-/* Mobile stacking */
-@media (max-width: 768px) {
-  .recv-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .recv-input {
-    justify-content: flex-start;
-    margin-top: 8px;
-  }
-  .recv-input input[type="number"] {
-    width: 100%;
-    max-width: 140px;
-  }
 }

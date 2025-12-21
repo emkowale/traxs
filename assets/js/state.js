@@ -12,6 +12,37 @@ export function createState() {
   const receiveInputs = {}; // { [poId]: { [lineId]: HTMLInputElement } }
 
   const key = (poId) => String(poId);
+  const draftKey = (poId) => 'traxs_receive_draft_' + key(poId);
+
+  const storageAvailable = (() => {
+    try {
+      const testKey = '__traxs_storage_test';
+      if (typeof localStorage === 'undefined') {
+        return null;
+      }
+      localStorage.setItem(testKey, testKey);
+      localStorage.removeItem(testKey);
+      return localStorage;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  function persistDraft(poId) {
+    if (!storageAvailable) return;
+    const k = key(poId);
+    const data = receiveDraft[k] || {};
+    try {
+      storageAvailable.setItem(draftKey(poId), JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function clearDraftStorage(poId) {
+    if (!storageAvailable) return;
+    try {
+      storageAvailable.removeItem(draftKey(poId));
+    } catch (e) {}
+  }
 
   function getPoLabel(poId) {
     const k = key(poId);
@@ -36,8 +67,35 @@ export function createState() {
 
   function getReceiveDraft(poId) {
     const k = key(poId);
-    if (!receiveDraft[k]) receiveDraft[k] = {};
+    if (!receiveDraft[k]) {
+      receiveDraft[k] = {};
+      if (storageAvailable) {
+        const stored = storageAvailable.getItem(draftKey(poId));
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') {
+              receiveDraft[k] = parsed;
+            }
+          } catch (e) {}
+        }
+      }
+    }
     return receiveDraft[k];
+  }
+
+  function setReceiveDraftValue(poId, lineId, qty) {
+    if (!lineId) return;
+    const k = key(poId);
+    if (!receiveDraft[k]) receiveDraft[k] = {};
+    receiveDraft[k][lineId] = qty;
+    persistDraft(poId);
+  }
+
+  function clearReceiveDraft(poId) {
+    const k = key(poId);
+    delete receiveDraft[k];
+    clearDraftStorage(poId);
   }
 
   function getReceiveInputs(poId) {
@@ -63,6 +121,8 @@ export function createState() {
     setPoLabel,
     getReceiveDraft,
     getReceiveInputs,
+    setReceiveDraftValue,
+    clearReceiveDraft,
     clearPoState,
   };
 }

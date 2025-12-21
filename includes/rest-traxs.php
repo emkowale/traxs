@@ -10,6 +10,9 @@
 namespace Traxs;
 if (!defined('ABSPATH')) exit;
 
+require_once __DIR__ . '/class-traxs-po-service.php';
+require_once __DIR__ . '/class-traxs-receive.php';
+
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -56,20 +59,14 @@ class Traxs_REST_Controller {
             'callback'            => [__CLASS__, 'receive'],
         ]);
 
-        // GET /traxs/v1/workorders  (streams multi-page PDF)
-        \register_rest_route('traxs/v1', '/workorders', [
-            'methods'             => 'GET',
-            'permission_callback' => [__CLASS__, 'can_use'],
-            'callback'            => [__CLASS__, 'workorders'],
-        ]);
     }
 
     /* ---------------- Handlers ---------------- */
 
     /** GET /pos → finalized POs with BT numbers */
     public static function get_pos(WP_REST_Request $req): WP_REST_Response {
-        $data = \is_callable([Eject_Bridge::class, 'get_open_pos'])
-            ? Eject_Bridge::get_open_pos()
+        $data = \is_callable([Traxs_PO_Service::class, 'get_open_pos'])
+            ? Traxs_PO_Service::get_open_pos()
             : [];
         if (!\is_array($data)) $data = [];
         return new WP_REST_Response($data, 200);
@@ -82,8 +79,8 @@ class Traxs_REST_Controller {
             return new WP_REST_Response(['error' => 'Missing or invalid po_id'], 400);
         }
 
-        $lines = \is_callable([Eject_Bridge::class, 'get_po_lines'])
-            ? Eject_Bridge::get_po_lines($po_id)
+        $lines = \is_callable([Traxs_PO_Service::class, 'get_po_lines'])
+            ? Traxs_PO_Service::get_po_lines($po_id)
             : [];
         if (!\is_array($lines)) $lines = [];
 
@@ -164,39 +161,6 @@ class Traxs_REST_Controller {
         return new WP_REST_Response($result, $code);
     }
 
-    /**
-     * GET /workorders
-     * Streams a multi-page PDF for all orders that are NOT completed.
-     * (Uses WorkOrder_PDF::output_for_orders to render.)
-     */
-    public static function workorders(WP_REST_Request $req) {
-        if (!\class_exists(__NAMESPACE__ . '\\WorkOrder_PDF')) {
-            require_once __DIR__ . '/class-traxs-workorder-pdf.php';
-        }
-
-        // Pull all non-completed shop orders (processing/on-hold/pending/etc.)
-        $args = [
-            'status'       => array_diff(\wc_get_is_paid_statuses(), ['completed']), // leaves processing, etc.
-            'type'         => 'shop_order',
-            'limit'        => -1,
-            'return'       => 'ids',
-            'orderby'      => 'date',
-            'order'        => 'ASC',
-        ];
-        // Safety: if Woo changes statuses, ensure a fallback
-        if (empty($args['status'])) {
-            $args['status'] = ['processing', 'on-hold', 'pending', 'wc-ready', 'wc-in-production'];
-        }
-
-        $order_ids = \wc_get_orders($args);
-        if (!\is_array($order_ids)) $order_ids = [];
-
-        // Stream PDF (exits)
-        WorkOrder_PDF::output_for_orders($order_ids);
-
-        // If the renderer didn’t exit (shouldn’t happen), return an error response
-        return new WP_REST_Response(['ok' => false, 'msg' => 'PDF output failed'], 500);
-    }
 }
 
 Traxs_REST_Controller::init();

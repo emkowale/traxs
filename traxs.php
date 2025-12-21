@@ -1,6 +1,6 @@
 <?php
 /*
- * 1.0.3
+ * 	.0.3
  * Plugin Name: Traxs
  * Plugin URI: https://github.com/emkowale/traxs
  * Description: Smart Purchase Order & Receiving Workflow for WordPress.
@@ -22,9 +22,36 @@ if (!defined('ABSPATH')) exit;
 define('TRAXS_VERSION','1.0.2');
 if (!defined('TRAXS_PATH')) define('TRAXS_PATH', plugin_dir_path(__FILE__));
 if (!defined('TRAXS_URL')) define('TRAXS_URL', plugin_dir_url(__FILE__));
+if (!defined('TRAXS_BACKEND_DIR')) define('TRAXS_BACKEND_DIR', TRAXS_PATH . 'includes/traxs-backend/');
+if (!defined('TRAXS_BACKEND_URL')) define('TRAXS_BACKEND_URL', TRAXS_URL . 'assets/traxs-backend/');
+if (!defined('TRAXS_BACKEND_VERSION')) define('TRAXS_BACKEND_VERSION', '2.0.5');
+if (!defined('EJECT_DIR')) define('EJECT_DIR', TRAXS_BACKEND_DIR);
+if (!defined('EJECT_URL')) define('EJECT_URL', TRAXS_BACKEND_URL);
+if (!defined('EJECT_VER')) define('EJECT_VER', TRAXS_BACKEND_VERSION);
 
 // Ensure login screen branding/styles always load.
 require_once TRAXS_PATH . 'includes/login-style.php';
+require_once TRAXS_PATH . 'includes/class-traxs-backend.php';
+add_action('init', function () {
+    register_post_status('wc-on-order', [
+        'label'                     => _x('On Order', 'Order status', 'eject'),
+        'public'                    => true,
+        'exclude_from_search'       => false,
+        'show_in_admin_all_list'    => true,
+        'show_in_admin_status_list' => true,
+        'label_count'               => _n_noop('On Order <span class="count">(%s)</span>', 'On Order <span class="count">(%s)</span>', 'eject'),
+    ]);
+});
+add_filter('wc_order_statuses', function ($statuses) {
+    $new = [];
+    foreach ($statuses as $key => $label) {
+        $new[$key] = $label;
+        if ($key === 'wc-on-hold') {
+            $new['wc-on-order'] = _x('On Order', 'Order status', 'eject');
+        }
+    }
+    return $new;
+});
 /**
  * Register /traxs/ endpoint
  */
@@ -80,9 +107,13 @@ function traxs_enqueue_scripts() {
     wp_enqueue_script('traxs-receive-complete', $base.'receive-complete.js', [], $v('receive-complete.js'), true);
     wp_enqueue_script('traxs-main', $base.'traxs-main.js', [], $v('traxs-main.js'), true);
 
+    $print_workorder_url   = esc_url_raw(admin_url('admin-post.php') . '?action=eject_print_workorder');
+    $print_workorder_nonce = wp_create_nonce('eject_print_workorder');
     wp_localize_script('traxs-main', 'wpApiSettings', [
-        'root'  => esc_url_raw(rest_url()),
-        'nonce' => wp_create_nonce('wp_rest')
+        'root'                => esc_url_raw(rest_url()),
+        'nonce'               => wp_create_nonce('wp_rest'),
+        'printWorkorderUrl'   => $print_workorder_url,
+        'printWorkorderNonce' => $print_workorder_nonce,
     ]);
 
     // ✅ Load ES module bundle (modern files)
@@ -118,10 +149,29 @@ foreach (glob(plugin_dir_path(__FILE__) . 'includes/rest-*.php') as $rest_file) 
     include_once $rest_file;
 }
 
+require_once TRAXS_PATH . 'includes/class-traxs-rest-workorders.php';
+
+add_action('plugins_loaded', function () {
+    if (!class_exists('WooCommerce')) {
+        add_action('admin_notices', function () {
+            echo '<div class="error"><p><strong>Traxs</strong> requires WooCommerce to be active.</p></div>';
+        });
+        deactivate_plugins(plugin_basename(__FILE__));
+        return;
+    }
+
+    \Traxs\Traxs_Backend::init();
+});
+
 /**
  * Activation hook - flush rewrites
  */
 register_activation_hook(__FILE__, function() {
     traxs_register_routes();
+    \Traxs\Traxs_Backend::register_post_type();
+    flush_rewrite_rules();
+});
+
+register_deactivation_hook(__FILE__, function() {
     flush_rewrite_rules();
 });

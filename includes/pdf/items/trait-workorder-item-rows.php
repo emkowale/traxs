@@ -1,19 +1,20 @@
 <?php
-// includes/pdf/items/trait-workorder-items-render.php
 namespace Traxs;
 
 if (!defined('ABSPATH')) exit;
 
-trait WorkOrder_Items_Render {
+trait WorkOrder_ItemRows {
     protected function renderLineItemsTableHeader(array $w): void {
         $this->SetX($this->lMargin);
         $this->Cell($w['production'], 7, 'Production', 1, 0, 'C');
         $this->Cell($w['vendor'], 7, 'Vendor Code', 1, 0, 'C');
         $this->Cell($w['color'], 7, 'Color', 1, 0, 'C');
         $this->Cell($w['desc'], 7, 'Description', 1, 0, 'C');
+
         foreach ($this->getSizeColumns() as $s) {
             $this->Cell($w[$s], 7, $s, 1, 0, 'C');
         }
+
         $this->Cell($w['items'], 7, 'Items', 1, 0, 'C');
         $this->Ln();
     }
@@ -30,7 +31,7 @@ trait WorkOrder_Items_Render {
 
         $descX = $this->GetX();
         $this->SetXY($descX, $y);
-        $this->MultiCell($w['desc'], $lineHeight, $group['description'], 1);
+        $this->MultiCell($w['desc'], $lineHeight, $group['description'], 1, "L");
         $afterDescX = $descX + $w['desc'];
         $this->SetXY($afterDescX, $y);
 
@@ -46,22 +47,15 @@ trait WorkOrder_Items_Render {
     }
 
     protected function ensureLineItemSpace(float $requiredHeight, array $w): void {
-        $limit = $this->GetPageHeight() - $this->bMargin;
-        if ($this->GetY() + $requiredHeight <= $limit) return;
+        $limit = $this->GetPageHeight() - $this->footerHeight - $this->bMargin;
+        if ($this->GetY() + $requiredHeight <= $limit) {
+            return;
+        }
 
         $this->AddPage();
-        $this->renderHeaderSection();
         $this->SetFont('Arial', 'B', 9);
+        $this->ensureLineItemsTableStartPosition();
         $this->renderLineItemsTableHeader($w);
         $this->SetFont('Arial', '', 9);
-    }
-
-    protected function renderImagesSection(): void {
-        $w  = 603.5;
-        $x1 = $this->lMargin;
-        $x2 = $x1 + $w + 5;
-        $y  = $this->GetY() + 3;
-        if ($this->mockup_url) $this->Image($this->mockup_url, $x1, $y, $w);
-        if ($this->art_url)    $this->Image($this->art_url, $x2, $y, $w);
     }
 }

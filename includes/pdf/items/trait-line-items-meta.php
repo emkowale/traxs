@@ -49,20 +49,23 @@ trait WorkOrder_Items_Meta {
             }
         }
 
-        $product = $item->get_product();
-        if ($product instanceof WC_Product) {
-            $imageId = $product->get_image_id();
-            if ($imageId) {
-                $src = '';
-                if (\function_exists('wp_get_attachment_image_url')) {
-                    $src = (string) \wp_get_attachment_image_url($imageId, 'thumbnail');
-                }
-                if (!$src && \function_exists('wp_get_attachment_url')) {
-                    $src = (string) \wp_get_attachment_url($imageId);
-                }
-                if ($src) {
-                    return $src;
-                }
+        foreach ($this->collectProductImageCandidates($item) as $candidate) {
+            $imageId = $candidate->get_image_id();
+            if (!$imageId) {
+                $imageId = (int) \get_post_thumbnail_id($candidate->get_id());
+            }
+            if (!$imageId) {
+                continue;
+            }
+            $src = '';
+            if (\function_exists('wp_get_attachment_image_url')) {
+                $src = (string) \wp_get_attachment_image_url($imageId, 'thumbnail');
+            }
+            if (!$src && \function_exists('wp_get_attachment_url')) {
+                $src = (string) \wp_get_attachment_url($imageId);
+            }
+            if ($src) {
+                return $src;
             }
         }
 
@@ -138,5 +141,39 @@ trait WorkOrder_Items_Meta {
         }
 
         return (bool) \filter_var($value, FILTER_VALIDATE_URL);
+    }
+
+    protected function collectProductImageCandidates(WC_Order_Item_Product $item): array {
+        $candidates = [];
+        $seen = [];
+
+        $add = function (?WC_Product $product) use (&$candidates, &$seen): void {
+            if (!$product instanceof WC_Product) {
+                return;
+            }
+            $id = (int) $product->get_id();
+            if ($id <= 0 || isset($seen[$id])) {
+                return;
+            }
+            $seen[$id] = true;
+            $candidates[] = $product;
+        };
+
+        $variation_id = (int) $item->get_variation_id();
+        $variation = null;
+        if ($variation_id > 0) {
+            $variation = wc_get_product($variation_id);
+            $add($variation);
+        }
+
+        $product = $item->get_product();
+        $add($product);
+
+        if ($variation instanceof WC_Product && $variation->get_parent_id()) {
+            $parent = wc_get_product($variation->get_parent_id());
+            $add($parent);
+        }
+
+        return $candidates;
     }
 }

@@ -13,7 +13,7 @@ export function createHome(root, h, headerBlock, logoUrl = '') {
     const screen = h('div', { class: 'traxs-home' });
 
     const hero = h('div', { class: 'traxs-home-hero' });
-    const title = h('div', { class: 'traxs-home-title', text: 'Traxs' });
+    const title = h('h1', { class: 'traxs-home-title', text: 'Traxs' });
 
     const logo = h('img', {
       class: 'traxs-home-logo',
@@ -26,12 +26,12 @@ export function createHome(root, h, headerBlock, logoUrl = '') {
 
     const buttonsWrap = h('div', { class: 'traxs-home-buttons' });
     [
-      { text: 'Receive Goods', token: 'pos' },
+      { text: 'Receive POs', token: 'pos' },
       { text: 'Print Work Orders', token: 'print' },
-      { text: 'Scan Work Order', token: 'scan' },
+      //{ text: 'Scan Work Order', token: 'scan' },
     ].forEach(({ text, token }) => {
       const btn = h('button', {
-        class: 'traxs-btn primary',
+        class: 'traxs-btn primary button button-primary',
         text,
       });
       btn.addEventListener('click', () => onNav(token));

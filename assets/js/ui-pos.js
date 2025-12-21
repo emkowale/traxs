@@ -55,10 +55,10 @@ export function createPOList(root, h, headerBlock, getPOs, setPoLabel) {
       const poNumber =
         p.po_number || p.po || p.bt_number || p.number || '—';
 
-      const label = 'PO ' + poNumber;
+      const label = poNumber;
 
       const btn = h('button', {
-        class: 'traxs-btn primary',
+        class: 'traxs-btn primary button button-primary',
         text: label,
       });
 
