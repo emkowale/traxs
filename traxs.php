@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: Traxs
- * Version: 1.0.18
+ * Version: 1.0.19
  * Plugin URI: https://github.com/emkowale/traxs
  * Description: Smart Purchase Order & Receiving Workflow for WordPress.
  * Author: Eric Kowalewski
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) exit;
 
 
 
-define('PLUGIN_VERSION', '1.0.18');
+define('PLUGIN_VERSION', '1.0.19');
 if (!defined('TRAXS_PATH')) define('TRAXS_PATH', plugin_dir_path(__FILE__));
 if (!defined('TRAXS_URL')) define('TRAXS_URL', plugin_dir_url(__FILE__));
 if (!defined('TRAXS_BACKEND_DIR')) define('TRAXS_BACKEND_DIR', TRAXS_PATH . 'includes/traxs-backend/');
