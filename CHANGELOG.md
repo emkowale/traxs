@@ -1,6 +1,21 @@
 v1.0.15 — 2025-11-20
 
-## [1.0.16] - 2025-12-20
+## [1.0.18] - 2025-12-22
+
+### Changes
+* chore(release): v1.0.16 (8ce4c7f)
+* Release v1.0.3 (c33db0e)
+* chore: update .lucy.json memory anchor v1.0.15 (afead85)
+
+
+## [1.0.17] - 2025-12-22
+
+### Changes
+* chore(release): v1.0.16 (8ce4c7f)
+* Release v1.0.3 (c33db0e)
+* chore: update .lucy.json memory anchor v1.0.15 (afead85)
+
+
 
 ### Changes
 * Release v1.0.3 (c33db0e)

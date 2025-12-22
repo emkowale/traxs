@@ -1,8 +1,7 @@
 <?php
 /*
- * Plugin Version: 1.0.15
  * Plugin Name: Traxs
- * Version: 1.0.16
+ * Version: 1.0.18
  * Plugin URI: https://github.com/emkowale/traxs
  * Description: Smart Purchase Order & Receiving Workflow for WordPress.
  * Author: Eric Kowalewski
@@ -22,8 +21,8 @@
 if (!defined('ABSPATH')) exit;
 
 
-define('PLUGIN_VERSION', '1.0.16');
-define('TRAXS_VERSION','1.0.15');
+
+define('PLUGIN_VERSION', '1.0.18');
 if (!defined('TRAXS_PATH')) define('TRAXS_PATH', plugin_dir_path(__FILE__));
 if (!defined('TRAXS_URL')) define('TRAXS_URL', plugin_dir_url(__FILE__));
 if (!defined('TRAXS_BACKEND_DIR')) define('TRAXS_BACKEND_DIR', TRAXS_PATH . 'includes/traxs-backend/');
@@ -68,7 +67,7 @@ add_action('init', 'traxs_register_routes');
 /**
  * Render SPA container for /traxs/
  */
-	add_action('template_redirect', function() {
+add_action('template_redirect', function() {
 	    global $wp_query;
 	    if (isset($wp_query->query_vars['traxs'])) {
 	        if (!is_user_logged_in()) {
@@ -82,18 +81,27 @@ add_action('init', 'traxs_register_routes');
 
 	        status_header(200);
 	        nocache_headers();
-	        echo '<!DOCTYPE html><html><head>';
-	        echo '<meta charset="utf-8">';
-	        echo '<style id="traxs-admin-bar-reset">html{margin-top:0!important;}body{margin-top:0!important;}#wpadminbar{display:none!important;}</style>';
+        echo '<!DOCTYPE html><html><head>';
+        echo '<meta charset="utf-8">';
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">';
+        echo '<meta name="format-detection" content="telephone=no">';
+        echo '<style id="traxs-admin-bar-reset">html{margin-top:0!important;}body{margin-top:0!important;}#wpadminbar{display:none!important;}</style>';
 	        wp_head();
 	        $body_classes = array_map('sanitize_html_class', array_merge(get_body_class(), ['traxs-app', 'traxs-kiosk']));
-	        echo '<body class="' . esc_attr(implode(' ', array_unique($body_classes))) . '">';
-	        echo '<div id="traxs-root" class="traxs-root"></div>';
-	        wp_footer();
-	        echo '</body></html>';
-	        exit;
-	    }
+        echo '<body class="' . esc_attr(implode(' ', array_unique($body_classes))) . '">';
+        echo '<div id="traxs-root" class="traxs-root"></div>';
+        wp_footer();
+        echo '</body></html>';
+        exit;
+    }
 });
+
+/**
+ * Prevent pinch-to-zoom on every loaded page.
+ */
+add_action('wp_head', function () {
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">' . "\n";
+}, 0);
 
 /**
  * Enqueue scripts and styles
@@ -118,6 +126,8 @@ function traxs_enqueue_scripts() {
         'nonce'               => wp_create_nonce('wp_rest'),
         'printWorkorderUrl'   => $print_workorder_url,
         'printWorkorderNonce' => $print_workorder_nonce,
+        'soundBase'           => plugin_dir_url(__FILE__) . 'assets/sounds/',
+        'moduleBase'          => plugin_dir_url(__FILE__) . 'assets/js/',
     ]);
 
     // ✅ Load ES module bundle (modern files)
