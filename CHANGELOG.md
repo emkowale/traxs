@@ -1,3 +1,25 @@
+## [Unreleased]
+
+## [1.0.20] - 2026-02-05
+
+### Changes
+* chore(release): v1.0.19 (cd11f31)
+
+
+### Fixed
+* fix(admin-mobile): restore portrait behavior by hiding Existing/Ordered PO action columns at `max-width: 600px`.
+* fix(admin-mobile): PO action handlers now support `pointerup` + `touchend` + `click` with dedupe to improve iPhone/Brave tap reliability.
+* fix(admin-mobile): replaced browser `confirm()` with in-page confirm modal for Delete/Prune/Cleanup so Brave on iPhone is not blocked by dialog restrictions.
+* fix(admin-mobile): Delete action now surfaces server error messages (nonce/permission/etc.) instead of a generic silent failure.
+* fix(workorders-pdf): decode HTML entities and normalize UTF-8 text in billing/shipping/item/instructions fields so special characters render correctly (for example `O&#039;Hare` -> `O'Hare`).
+* tweak(workorders-pdf): widened the `Vendor Code` column in the Items table and reduced `Items` width by the same amount so the header and row values have better side padding.
+* tweak(workorders-pdf): set Items-row text size to match header size, wrap `Vendor Code` at `(` for fit, and center `Production` column values.
+* tweak(workorders-pdf): vertically center all Items-row columns (`Items`, `Vendor Code`, `Color`, `Size`, `Qty`, `Production`) for consistent row alignment.
+* fix(workorders-pdf): prevent distinct products from collapsing into one Items row when they share the same vendor blank code (for example multiple `DT6000` products now render as separate rows).
+* fix(workorders-pdf): build Items rows from all order line items and keep each order-item ID distinct so every ordered item appears (including custom/non-vendor-tagged lines).
+* chore(assets): bumped `TRAXS_BACKEND_VERSION` to `2.0.6` so mobile browsers fetch updated admin JS/CSS immediately.
+* chore(release): `release.sh` now publishes GitHub release notes from the matching `CHANGELOG.md` version section.
+
 v1.0.15 — 2025-11-20
 
 ## [1.0.19] - 2025-12-22

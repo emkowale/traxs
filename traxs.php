@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: Traxs
- * Version: 1.0.19
+ * Version: 1.0.20
  * Plugin URI: https://github.com/emkowale/traxs
  * Description: Smart Purchase Order & Receiving Workflow for WordPress.
  * Author: Eric Kowalewski
@@ -22,12 +22,13 @@ if (!defined('ABSPATH')) exit;
 
 
 
-define('PLUGIN_VERSION', '1.0.19');
+define('PLUGIN_VERSION', '1.0.20');
+if (!defined('TRAXS_VERSION')) define('TRAXS_VERSION','1.0.19');
 if (!defined('TRAXS_PATH')) define('TRAXS_PATH', plugin_dir_path(__FILE__));
 if (!defined('TRAXS_URL')) define('TRAXS_URL', plugin_dir_url(__FILE__));
 if (!defined('TRAXS_BACKEND_DIR')) define('TRAXS_BACKEND_DIR', TRAXS_PATH . 'includes/traxs-backend/');
 if (!defined('TRAXS_BACKEND_URL')) define('TRAXS_BACKEND_URL', TRAXS_URL . 'assets/traxs-backend/');
-if (!defined('TRAXS_BACKEND_VERSION')) define('TRAXS_BACKEND_VERSION', '2.0.5');
+if (!defined('TRAXS_BACKEND_VERSION')) define('TRAXS_BACKEND_VERSION', '2.0.6');
 if (!defined('EJECT_DIR')) define('EJECT_DIR', TRAXS_BACKEND_DIR);
 if (!defined('EJECT_URL')) define('EJECT_URL', TRAXS_BACKEND_URL);
 if (!defined('EJECT_VER')) define('EJECT_VER', TRAXS_BACKEND_VERSION);
@@ -90,6 +91,10 @@ add_action('template_redirect', function() {
 	        $body_classes = array_map('sanitize_html_class', array_merge(get_body_class(), ['traxs-app', 'traxs-kiosk']));
         echo '<body class="' . esc_attr(implode(' ', array_unique($body_classes))) . '">';
         echo '<div id="traxs-root" class="traxs-root"></div>';
+        echo '<div class="traxs-portrait-lock" aria-live="polite"><div>';
+        echo '<p>Please rotate your device to portrait mode to continue using Traxs.</p>';
+        echo '<span class="traxs-portrait-lock__icon">↺</span>';
+        echo '</div></div>';
         wp_footer();
         echo '</body></html>';
         exit;
@@ -176,6 +181,13 @@ add_action('plugins_loaded', function () {
 
     \Traxs\Traxs_Backend::init();
 });
+
+add_action('woocommerce_order_status_changed', function ($order_id, $old_status, $new_status) {
+    if (!class_exists('Eject_Service')) {
+        return;
+    }
+    \Eject_Service::maybe_mark_order_needs_reorder($order_id, $old_status, $new_status);
+}, 10, 3);
 
 /**
  * Activation hook - flush rewrites
