@@ -162,6 +162,18 @@ function traxs_enqueue_scripts() {
 add_action('wp_enqueue_scripts', 'traxs_enqueue_scripts');
 
 /**
+ * Enqueue admin helpers.
+ */
+function traxs_enqueue_admin_scripts() {
+    $base = plugin_dir_url(__FILE__) . 'assets/js/';
+    $dir  = plugin_dir_path(__FILE__) . 'assets/js/';
+    $v = fn($f) => file_exists($dir.$f) ? filemtime($dir.$f) : time();
+
+    wp_enqueue_script('traxs-touch', $base.'traxs-touch.js', [], $v('traxs-touch.js'), true);
+}
+add_action('admin_enqueue_scripts', 'traxs_enqueue_admin_scripts');
+
+/**
  * Auto-include REST endpoints
  */
 foreach (glob(plugin_dir_path(__FILE__) . 'includes/rest-*.php') as $rest_file) {
