@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [1.0.22] - 2026-02-20
+
+### Changes
+* chore(release): v1.0.21 (ba936b9)
+
+
 ## [1.0.21] - 2026-02-20
 
 ### Changes
