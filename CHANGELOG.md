@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+## [1.0.21] - 2026-02-20
+
+### Changes
+* chore(release): v1.0.20 (d8d62ee)
+
+
 ## [1.0.20] - 2026-02-05
 
 ### Changes
@@ -19,6 +25,7 @@
 * fix(workorders-pdf): build Items rows from all order line items and keep each order-item ID distinct so every ordered item appears (including custom/non-vendor-tagged lines).
 * chore(assets): bumped `TRAXS_BACKEND_VERSION` to `2.0.6` so mobile browsers fetch updated admin JS/CSS immediately.
 * chore(release): `release.sh` now publishes GitHub release notes from the matching `CHANGELOG.md` version section.
+* fix(release): avoid `awk` syntax errors on systems using `mawk` by replacing reserved variable name `in` with `collecting` in GitHub release-notes extraction.
 
 v1.0.15 — 2025-11-20
 
